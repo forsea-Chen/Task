@@ -31,37 +31,57 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+#define TASK1_PRIO 1
+#define TASK1_STK_SIZE 128
+TaskHandle_t TASK1_Handler;
+void TASK1(void *argument);
 
+#define TASK2_PRIO 2
+#define TASK2_STK_SIZE 128
+TaskHandle_t TASK2_Handler;
+void TASK2(void *argument);
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define QUEUE1_NUM 3
+#define QUEUE2_NUM 3
+QueueHandle_t QUEUE1;
+QueueHandle_t QUEUE2;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+uint8_t rx_buff1[5];
+uint8_t rx_buff2[5];
+uint8_t uart_buff[5];
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+UART_HandleTypeDef huart1;
+DMA_HandleTypeDef hdma_usart1_tx;
+DMA_HandleTypeDef hdma_usart1_rx;
+
 osThreadId_t defaultTaskHandle;
 /* USER CODE BEGIN PV */
-osThreadId_t Task2Handle;
+//osThreadId_t Task2Handle;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-void Task1(void *argument);
+static void MX_DMA_Init(void);
+static void MX_USART1_UART_Init(void);
+void StartDefaultTask(void *argument);
 
 /* USER CODE BEGIN PFP */
-void Task2(void *argument);
+//void Task2(void *argument);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+uint8_t data2[]={"tasktwo"};
+uint8_t data1[]={"taskone"};
 /* USER CODE END 0 */
 
 /**
@@ -93,8 +113,10 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-
+HAL_UART_Receive_IT(&huart1,uart_buff,5);
   /* USER CODE END 2 */
 
   osKernelInitialize();
@@ -112,7 +134,8 @@ int main(void)
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
- // xQueue
+ QUEUE1=xQueueCreate(QUEUE1_NUM,sizeof(uint8_t));
+ QUEUE2=xQueueCreate(QUEUE2_NUM,sizeof(uint8_t));
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -122,15 +145,15 @@ int main(void)
     .priority = (osPriority_t) osPriorityNormal,
     .stack_size = 128
   };
-  defaultTaskHandle = osThreadNew(Task1, NULL, &defaultTask_attributes);
+  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
-  const osThreadAttr_t Task2_attributes = {
-      .name = "Task2",
-      .priority = (osPriority_t) osPriorityNormal,
-      .stack_size = 128
-    };
-    Task2Handle = osThreadNew(Task2, NULL, &Task2_attributes);
+//  const osThreadAttr_t Task2_attributes = {
+//      .name = "Task2",
+//      .priority = (osPriority_t) osPriorityNormal,
+//      .stack_size = 128
+//    };
+//    Task2Handle = osThreadNew(Task2, NULL, &Task2_attributes);
 
   /* USER CODE END RTOS_THREADS */
 
@@ -193,6 +216,58 @@ void SystemClock_Config(void)
 }
 
 /**
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART1_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART1_Init 0 */
+
+  /* USER CODE END USART1_Init 0 */
+
+  /* USER CODE BEGIN USART1_Init 1 */
+
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART1_Init 2 */
+
+  /* USER CODE END USART1_Init 2 */
+
+}
+
+/** 
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void) 
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Stream2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
+  /* DMA2_Stream7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -207,7 +282,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void Task2(void *argument)
+void TASK1(void *argument)
 {
 
 
@@ -217,6 +292,22 @@ void Task2(void *argument)
   /* Infinite loop */
   for(;;)
   {
+    osDelay(1);
+  }
+  /* USER CODE END 5 */
+}
+void TASK2(void *argument)
+{
+
+
+
+
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+      HAL_UART_Transmit_DMA(&huart1,data2,1);
+
     osDelay(1);
   }
   /* USER CODE END 5 */
@@ -231,7 +322,7 @@ void Task2(void *argument)
   * @retval None
   */
 /* USER CODE END Header_StartDefaultTask */
-void Task1(void *argument)
+void StartDefaultTask(void *argument)
 {
     
     
@@ -241,6 +332,23 @@ void Task1(void *argument)
   /* Infinite loop */
   for(;;)
   {
+      taskENTER_CRITICAL();
+      xTaskCreate((TaskFunction_t)TASK1,
+		  (const char*	 )"TASK1",
+		  (uint16_t	 )TASK1_STK_SIZE,
+		  (void*	 )NULL,
+		  (UBaseType_t	 )TASK1_PRIO,
+		  (TaskHandle_t* )TASK1_Handler
+		  );
+      xTaskCreate((TaskFunction_t)TASK2,
+      		  (const char*	 )"TASK2",
+      		  (uint16_t	 )TASK2_STK_SIZE,
+      		  (void*	 )NULL,
+      		  (UBaseType_t	 )TASK2_PRIO,
+      		  (TaskHandle_t* )TASK2_Handler
+      		  );
+      vTaskDelete(defaultTaskHandle);
+      taskEXIT_CRITICAL();
     osDelay(1);
   }
   /* USER CODE END 5 */ 
