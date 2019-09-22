@@ -31,7 +31,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-#define TASK1_PRIO 1
+#define TASK1_PRIO 2
 #define TASK1_STK_SIZE 128
 TaskHandle_t TASK1_Handler;
 void TASK1(void *argument);
@@ -83,8 +83,8 @@ void StartDefaultTask(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t data2[]={"tasktwo"};
-uint8_t data1[]={"taskone"};
+uint8_t data2[]={'t'};
+uint8_t data1[]={'o'};
 /* USER CODE END 0 */
 
 /**
@@ -314,16 +314,17 @@ void TASK2(void *argument)
   for(;;)
   {
       HAL_UART_Transmit_DMA(&huart1,data2,1);
-      if(xQueueReceive(QUEUE1,rx_buff1,100)==pdTRUE)
-	  {
-	      HAL_UART_Transmit_DMA(&huart1,meg1,1);
-	  }
+//      if(xQueueReceive(QUEUE1,rx_buff1,100)==pdTRUE)
+//	  {
+//	      HAL_UART_Transmit_DMA(&huart1,meg1,1);
+//	  }
+      HAL_UART_Transmit_DMA(&huart1,data2,1);
       if(xQueueReceive(QUEUE2,rx_buff2,100)==pdTRUE)
       	  {
-      	      HAL_UART_Transmit_DMA(&huart1,rx_buff2,1);
+      	      HAL_UART_Transmit_DMA(&huart1,(uint8_t*)rx_buff2,1);
       	  }
 //    vTaskDelayUntil(, )
-      osDelay(5);
+      osDelay(3);
   }
   /* USER CODE END 5 */
 }
