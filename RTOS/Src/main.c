@@ -55,6 +55,9 @@ QueueHandle_t QUEUE2;
 uint8_t rx_buff1[5];
 uint8_t rx_buff2[5];
 uint8_t uart_buff[5];
+uint8_t meg1[]="usart";
+//uint8_t meg2="task";
+uint8_t send;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -292,7 +295,11 @@ void TASK1(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+      HAL_UART_Transmit_DMA(&huart1,data1,1);
+      send++;
+     if(send=='9')send='0';
+     xQueueSend(QUEUE2,&send,100);
+    osDelay(3);
   }
   /* USER CODE END 5 */
 }
@@ -307,12 +314,45 @@ void TASK2(void *argument)
   for(;;)
   {
       HAL_UART_Transmit_DMA(&huart1,data2,1);
-
-    osDelay(1);
+      if(xQueueReceive(QUEUE1,rx_buff1,100)==pdTRUE)
+	  {
+	      HAL_UART_Transmit_DMA(&huart1,meg1,1);
+	  }
+      if(xQueueReceive(QUEUE2,rx_buff2,100)==pdTRUE)
+      	  {
+      	      HAL_UART_Transmit_DMA(&huart1,rx_buff2,1);
+      	  }
+//    vTaskDelayUntil(, )
+      osDelay(5);
   }
   /* USER CODE END 5 */
 }
-
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(huart);
+  xQueueSend(QUEUE1,uart_buff,100);
+  /* NOTE: This function should not be modified, when the callback is needed,
+           the HAL_UART_RxCpltCallback could be implemented in the user file
+   */
+}
+/*taskENTER_CRITICAL();
+      xTaskCreate((TaskFunction_t)TASK1,
+		  (const char*	 )"TASK1",
+		  (uint16_t	 )TASK1_STK_SIZE,
+		  (void*	 )NULL,
+		  (UBaseType_t	 )TASK1_PRIO,
+		  (TaskHandle_t* )TASK1_Handler
+		  );
+      xTaskCreate((TaskFunction_t)TASK2,
+      		  (const char*	 )"TASK2",
+      		  (uint16_t	 )TASK2_STK_SIZE,
+      		  (void*	 )NULL,
+      		  (UBaseType_t	 )TASK2_PRIO,
+      		  (TaskHandle_t* )TASK2_Handler
+      		  );
+      vTaskDelete(defaultTaskHandle);
+      taskEXIT_CRITICAL();*/
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
