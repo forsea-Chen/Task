@@ -37,10 +37,14 @@ void USER_CAN_ConfigFilter(CAN_HandleTypeDef *hcan);
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 uint8_t Rxdata[8], Txdata[8]={0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10};
+uint8_t I1,SPEED1,I2,SPEED2,I3,SPEED3,I4,SPEED4;
+double out;
+double PID_OUTPUT(double,double);
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+#define Speed 0x10
 
 /* USER CODE END PM */
 
@@ -73,6 +77,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
   /* Prevent unused argument(s) compilation warning */
   UNUSED(hcan);
   CAN_Receive(hcan, Rxdata);
+
   /* NOTE : This function Should not be modified, when the callback is needed,
             the HAL_CAN_RxFifo0MsgPendingCallback could be implemented in the
             user file
@@ -114,7 +119,7 @@ int main(void)
   MX_CAN2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  USER_CAN_ConfigFilter(&hcan1);
+  USER_CAN_ConfigFilter(&hcan2);
   HAL_CAN_Start(&hcan1);
   HAL_CAN_Start(&hcan2);
   /* USER CODE END 2 */
@@ -125,6 +130,7 @@ int main(void)
   {
       CAN_Transmit(&hcan2,0x200,8,Txdata);
       HAL_Delay(50);
+
 //      CAN_Receive(&hcan1, Rxdata);
     /* USER CODE END WHILE */
 
@@ -314,6 +320,17 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+double PID_OUTPUT(double speed,double target)
+    {
+	double error_i=0,error_d=0,error_last=0,error=0;
+	float kp=0,ki=0,kd=0;
+	error=target-speed;
+	error_i+=error;
+	error_d=error_last-error;
+	error_last=error;
+	out=kp*error+ki*error_i+kd*error_d;
+	return out;
+    }
 void USER_CAN_ConfigFilter(CAN_HandleTypeDef *hcan)
       {
       CAN_FilterTypeDef Filter0;
@@ -354,10 +371,26 @@ void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[])
 //	Rxhead.Timestamp;
 //	Rxhead.FilterMatchIndex;
 	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &Rxhead, aData);
-	if(Rxhead.StdId==0x201){}
-	if(Rxhead.StdId==0x202){}
-	if(Rxhead.StdId==0x203){}
-	if(Rxhead.StdId==0x204){}
+	if(Rxhead.StdId==0x201)
+	    {
+	    SPEED1=(Rxdata[2]<<8)+Rxdata[3];
+	    I1=(Rxdata[4]<<8)+Rxdata[5];
+	    }
+	if(Rxhead.StdId==0x202)
+	    {
+	    SPEED2=(Rxdata[2]<<8)+Rxdata[3];
+	    I2=(Rxdata[4]<<8)+Rxdata[5];
+	    }
+	if(Rxhead.StdId==0x203)
+	    {
+	    SPEED3=(Rxdata[2]<<8)+Rxdata[3];
+	    I3=(Rxdata[4]<<8)+Rxdata[5];
+	    }
+	if(Rxhead.StdId==0x204)
+	    {
+	    SPEED4=(Rxdata[2]<<8)+Rxdata[3];
+	    I4=(Rxdata[4]<<8)+Rxdata[5];
+	    }
     }
 /* USER CODE END 4 */
 
