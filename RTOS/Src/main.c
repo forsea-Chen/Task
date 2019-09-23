@@ -31,13 +31,13 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-#define TASK1_PRIO 2
-#define TASK1_STK_SIZE 128
+#define TASK1_PRIO 40
+#define TASK1_STK_SIZE 256
 TaskHandle_t TASK1_Handler;
 void TASK1(void *argument);
 
-#define TASK2_PRIO 2
-#define TASK2_STK_SIZE 128
+#define TASK2_PRIO 40
+#define TASK2_STK_SIZE 256
 TaskHandle_t TASK2_Handler;
 void TASK2(void *argument);
 /* USER CODE END PTD */
@@ -57,7 +57,7 @@ uint8_t rx_buff2[5];
 uint8_t uart_buff[5];
 uint8_t meg1[]="usart";
 //uint8_t meg2="task";
-uint8_t send;
+int send;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -169,6 +169,7 @@ HAL_UART_Receive_IT(&huart1,uart_buff,5);
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+      HAL_Delay(2);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -297,9 +298,9 @@ void TASK1(void *argument)
   {
       HAL_UART_Transmit_DMA(&huart1,data1,1);
       send++;
-     if(send=='9')send='0';
-     xQueueSend(QUEUE2,&send,100);
-    osDelay(3);
+     if(send>=9)send=0;
+     xQueueSend(QUEUE2,&send,0);
+    osDelay(5);
   }
   /* USER CODE END 5 */
 }
@@ -313,18 +314,20 @@ void TASK2(void *argument)
   /* Infinite loop */
   for(;;)
   {
+//      HAL_Delay(100);       //加了这句后第一个任务执行16次后才会执行这个任务，不加这句话会跳过下一行代码（两次串口发送之间需要时间）
       HAL_UART_Transmit_DMA(&huart1,data2,1);
-//      if(xQueueReceive(QUEUE1,rx_buff1,100)==pdTRUE)
-//	  {
-//	      HAL_UART_Transmit_DMA(&huart1,meg1,1);
-//	  }
+ //     xQueueReceive(QUEUE1,rx_buff1,0);
+      if(xQueueReceive(QUEUE1,rx_buff1,0)==pdTRUE)//receive时间100时会卡死
+	  {
+	      HAL_UART_Transmit_DMA(&huart1,meg1,1);
+	  }
       HAL_UART_Transmit_DMA(&huart1,data2,1);
-      if(xQueueReceive(QUEUE2,rx_buff2,100)==pdTRUE)
+      if(xQueueReceive(QUEUE2,rx_buff2,0)==pdTRUE)
       	  {
       	      HAL_UART_Transmit_DMA(&huart1,(uint8_t*)rx_buff2,1);
       	  }
 //    vTaskDelayUntil(, )
-      osDelay(3);
+      osDelay(5);
   }
   /* USER CODE END 5 */
 }
@@ -374,23 +377,23 @@ void StartDefaultTask(void *argument)
   for(;;)
   {
       taskENTER_CRITICAL();
-      xTaskCreate((TaskFunction_t)TASK1,
-		  (const char*	 )"TASK1",
-		  (uint16_t	 )TASK1_STK_SIZE,
-		  (void*	 )NULL,
-		  (UBaseType_t	 )TASK1_PRIO,
-		  (TaskHandle_t* )TASK1_Handler
-		  );
-      xTaskCreate((TaskFunction_t)TASK2,
-      		  (const char*	 )"TASK2",
-      		  (uint16_t	 )TASK2_STK_SIZE,
+            xTaskCreate((TaskFunction_t)TASK1,
+      		  (const char*	 )"TASK1",
+      		  (uint16_t	 )TASK1_STK_SIZE,
       		  (void*	 )NULL,
-      		  (UBaseType_t	 )TASK2_PRIO,
-      		  (TaskHandle_t* )TASK2_Handler
+      		  (UBaseType_t	 )TASK1_PRIO,
+      		  (TaskHandle_t* )TASK1_Handler
       		  );
-      vTaskDelete(defaultTaskHandle);
-      taskEXIT_CRITICAL();
-    osDelay(1);
+            xTaskCreate((TaskFunction_t)TASK2,
+            		  (const char*	 )"TASK2",
+            		  (uint16_t	 )TASK2_STK_SIZE,
+            		  (void*	 )NULL,
+            		  (UBaseType_t	 )TASK2_PRIO,
+            		  (TaskHandle_t* )TASK2_Handler
+            		  );
+            vTaskDelete(defaultTaskHandle);
+            taskEXIT_CRITICAL();
+            osDelay(2);
   }
   /* USER CODE END 5 */ 
 }

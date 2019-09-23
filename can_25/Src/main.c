@@ -36,7 +36,7 @@ void USER_CAN_ConfigFilter(CAN_HandleTypeDef *hcan);
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-uint8_t Rxdata[8], Txdata[8]={0,1,2,3,4,5,6,7};
+uint8_t Rxdata[8], Txdata[8]={0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10};
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -114,7 +114,7 @@ int main(void)
   MX_CAN2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  USER_CAN_ConfigFilter(&hcan2);
+  USER_CAN_ConfigFilter(&hcan1);
   HAL_CAN_Start(&hcan1);
   HAL_CAN_Start(&hcan2);
   /* USER CODE END 2 */
@@ -123,8 +123,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      CAN_Transmit(&hcan1,0x201,8,Txdata);
+      CAN_Transmit(&hcan2,0x200,8,Txdata);
       HAL_Delay(50);
+//      CAN_Receive(&hcan1, Rxdata);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -325,19 +326,19 @@ void USER_CAN_ConfigFilter(CAN_HandleTypeDef *hcan)
         Filter0.FilterMode = CAN_FILTERMODE_IDMASK;
         Filter0.FilterScale = CAN_FILTERSCALE_32BIT;
         Filter0.FilterActivation = ENABLE;
-//        Filter0.SlaveStartFilterBank = 2;
+        Filter0.SlaveStartFilterBank = 14;
         HAL_CAN_ConfigFilter(hcan, &Filter0);
         HAL_CAN_ActivateNotification(hcan,CAN_IT_RX_FIFO0_MSG_PENDING);
       }
 void CAN_Transmit(CAN_HandleTypeDef *hcan,uint32_t Id,uint32_t DLC,uint8_t data[])
     {
-    uint32_t pTxmailbox;
+//    uint32_t pTxmailbox;
     CAN_TxHeaderTypeDef Txhead1;
     Txhead1.StdId=Id;
     Txhead1.DLC=DLC;
     Txhead1.IDE=CAN_ID_STD;
     Txhead1.RTR=CAN_RTR_DATA;
-    if(HAL_CAN_AddTxMessage(hcan, &Txhead1, data, &pTxmailbox)!=HAL_OK)
+    if(HAL_CAN_AddTxMessage(hcan, &Txhead1, data, (uint32_t*)CAN_TX_MAILBOX0)!=HAL_OK)
 	{
 	    Error_Handler();
 	}
