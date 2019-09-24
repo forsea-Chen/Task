@@ -36,15 +36,17 @@ void USER_CAN_ConfigFilter(CAN_HandleTypeDef *hcan);
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-uint8_t Rxdata[8], Txdata[8]={0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10};
-uint8_t I1,SPEED1,I2,SPEED2,I3,SPEED3,I4,SPEED4;
+uint16_t I1,SPEED1,I2,SPEED2,I3,SPEED3,I4,SPEED4;
+uint8_t I=0,DI=0;
+uint8_t Rxdata[8], Txdata[8]={0x10,0x10,0x10,0x10,0x10,0x10,0,0};
+
 double out;
 double PID_OUTPUT(double,double);
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-#define Speed 0x10
+//#define Speed 0x10
 
 /* USER CODE END PM */
 
@@ -128,8 +130,12 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+//      DI=(uint8_t)(PID_OUTPUT(I4,5012));
+//      I+=DI;
+//      Txdata[7]=I>>8;
+//      Txdata[8]=I&0XFF;
       CAN_Transmit(&hcan2,0x200,8,Txdata);
-      HAL_Delay(50);
+      HAL_Delay(10);
 
 //      CAN_Receive(&hcan1, Rxdata);
     /* USER CODE END WHILE */
@@ -323,7 +329,7 @@ static void MX_GPIO_Init(void)
 double PID_OUTPUT(double speed,double target)
     {
 	double error_i=0,error_d=0,error_last=0,error=0;
-	float kp=0,ki=0,kd=0;
+	float kp=10,ki=0,kd=0;
 	error=target-speed;
 	error_i+=error;
 	error_d=error_last-error;
