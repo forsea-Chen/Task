@@ -32,7 +32,15 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+double PID_OUTPUT(int16_t,int16_t);
+void car_run(int speed);
+void car_leftturn(int speed);
+void car_rightturn(int speed);
+void car_leftmove(int speed);
+void car_rightmove(int speed);
+void car_back(int speed);
+void car_stop();
+void motor_run(int,int);
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
