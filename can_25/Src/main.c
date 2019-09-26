@@ -37,11 +37,13 @@ void USER_CAN_ConfigFilter(CAN_HandleTypeDef *hcan);
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 uint16_t I1,SPEED1,I2,SPEED2,I3,SPEED3,I4,SPEED4;
-uint8_t I=0,DI=0;
+uint16_t I=0,DI=0;
 uint8_t Rxdata[8], Txdata[8]={0x10,0x10,0x10,0x10,0x10,0x10,0,0};
 
 double out;
-double PID_OUTPUT(double,double);
+double PID_OUTPUT(int16_t,int16_t);
+static double error_i=0,error_d=0,error_last=0,error=0;
+static float kp=3.2,ki=0.25,kd=3;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -121,7 +123,7 @@ int main(void)
   MX_CAN2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  USER_CAN_ConfigFilter(&hcan2);
+  USER_CAN_ConfigFilter(&hcan1);
   HAL_CAN_Start(&hcan1);
   HAL_CAN_Start(&hcan2);
   /* USER CODE END 2 */
@@ -130,11 +132,11 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//      DI=(uint8_t)(PID_OUTPUT(I4,5012));
-//      I+=DI;
-//      Txdata[7]=I>>8;
-//      Txdata[8]=I&0XFF;
-      CAN_Transmit(&hcan2,0x200,8,Txdata);
+      DI=(uint16_t)(PID_OUTPUT(SPEED1,2000));
+ //     I+=DI;
+      Txdata[0]=DI>>8;
+      Txdata[1]=DI&0XFF;
+      CAN_Transmit(&hcan1,0x200,8,Txdata);
       HAL_Delay(10);
 
 //      CAN_Receive(&hcan1, Rxdata);
@@ -326,13 +328,12 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-double PID_OUTPUT(double speed,double target)
+double PID_OUTPUT(int16_t speed,int16_t target)
     {
-	double error_i=0,error_d=0,error_last=0,error=0;
-	float kp=10,ki=0,kd=0;
+
 	error=target-speed;
 	error_i+=error;
-	error_d=error_last-error;
+	error_d=error-error_last;
 	error_last=error;
 	out=kp*error+ki*error_i+kd*error_d;
 	return out;
@@ -370,32 +371,26 @@ void CAN_Transmit(CAN_HandleTypeDef *hcan,uint32_t Id,uint32_t DLC,uint8_t data[
 void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[])
     {
 	CAN_RxHeaderTypeDef Rxhead;
-//	Rxhead.StdId=0;
-//	Rxhead.DLC=8;
-//	Rxhead.IDE=CAN_ID_STD;
-//	Rxhead.RTR=CAN_RTR_DATA;
-//	Rxhead.Timestamp;
-//	Rxhead.FilterMatchIndex;
 	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &Rxhead, aData);
 	if(Rxhead.StdId==0x201)
 	    {
-	    SPEED1=(Rxdata[2]<<8)+Rxdata[3];
-	    I1=(Rxdata[4]<<8)+Rxdata[5];
+	    SPEED1=((uint16_t)Rxdata[2]<<8)+(uint16_t)Rxdata[3];
+//	    I1=((uint16_t)Rxdata[4]<<8)+(uint16_t)Rxdata[5];
 	    }
 	if(Rxhead.StdId==0x202)
 	    {
-	    SPEED2=(Rxdata[2]<<8)+Rxdata[3];
-	    I2=(Rxdata[4]<<8)+Rxdata[5];
+	    SPEED2=((uint16_t)Rxdata[2]<<8)+(uint16_t)Rxdata[3];
+//	    I2=(Rxdata[4]<<8)+Rxdata[5];
 	    }
 	if(Rxhead.StdId==0x203)
 	    {
-	    SPEED3=(Rxdata[2]<<8)+Rxdata[3];
-	    I3=(Rxdata[4]<<8)+Rxdata[5];
+	    SPEED3=((uint16_t)Rxdata[2]<<8)+(uint16_t)Rxdata[3];
+//	    I3=((uint16_t)Rxdata[4]<<8)+Rxdata[5];
 	    }
 	if(Rxhead.StdId==0x204)
 	    {
-	    SPEED4=(Rxdata[2]<<8)+Rxdata[3];
-	    I4=(Rxdata[4]<<8)+Rxdata[5];
+	    SPEED4=((uint16_t)Rxdata[2]<<8)+(uint16_t)Rxdata[3];
+//	    I4=(Rxdata[4]<<8)+Rxdata[5];
 	    }
     }
 /* USER CODE END 4 */
