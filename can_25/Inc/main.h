@@ -41,6 +41,7 @@ void car_rightmove(int speed);
 void car_back(int speed);
 void car_stop();
 void motor_run(int,int);
+void motor_moni(int,int,int,int);
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

@@ -44,8 +44,15 @@ void car_rightmove(int speed)
     }
 void car_rightturn(int speed)
     {
-	motor_run(0x201,-speed);
-	motor_run(0x202,-speed);
+	motor_run(0x201,speed);
+	motor_run(0x202,speed);
 	motor_run(0x203,speed);
 	motor_run(0x204,speed);
+    }
+void car_leftturn(int speed)
+    {
+	motor_run(0x201,-speed);
+	motor_run(0x202,-speed);
+	motor_run(0x203,-speed);
+	motor_run(0x204,-speed);
     }

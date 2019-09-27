@@ -411,6 +411,23 @@ void motor_run(int ID,int speed)
       	      break;
 	  }
       }
+void motor_moni(int v1,int v2,int v3,int v4)
+    {
+	dv=(uint16_t)(PID_OUTPUT(SPEED1,v1));
+	Txdata[0]=dv>>8;
+	Txdata[1]=dv&0XFF;
+	dv=(uint16_t)(PID_OUTPUT(SPEED1,v2));
+	Txdata[2]=dv>>8;
+	Txdata[3]=dv&0XFF;
+	dv=(uint16_t)(PID_OUTPUT(SPEED1,v3));
+	Txdata[4]=dv>>8;
+	Txdata[5]=dv&0XFF;
+	dv=(uint16_t)(PID_OUTPUT(SPEED1,v4));
+	Txdata[6]=dv>>8;
+	Txdata[7]=dv&0XFF;
+	CAN_Transmit(&hcan1,0x200,8,Txdata);
+    }
+
 /* USER CODE END 4 */
 
 /**
