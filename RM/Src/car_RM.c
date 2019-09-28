@@ -1,7 +1,7 @@
 /*
- * car.c
+ * car_RM.c
  *
- *  Created on: 2019年9月27日
+ *  Created on: Sep 28, 2019
  *      Author: Administrator
  */
 #include "main.h"
@@ -66,3 +66,4 @@ void move(int vx,int vy,int w)
 	v4=vy-vx-w*20;
 	motor_moni(v1,v2,v3,v4);
     }
+

@@ -1,7 +1,7 @@
 /*
- * pid.c
+ * pid_RM.c
  *
- *  Created on: Sep 26, 2019
+ *  Created on: Sep 28, 2019
  *      Author: Administrator
  */
 #include "main.h"
@@ -10,6 +10,7 @@ static double error_i=0,error_d=0,error_last=0,error=0;
 static float kp=6,ki=0.23,kd=0.01;
 double PID_OUTPUT(int16_t speed,int16_t target)
     {
+
 	error=target-speed;
 	error_i+=error;
 	if(error_i>=3000)error_i=3000;
@@ -20,3 +21,4 @@ double PID_OUTPUT(int16_t speed,int16_t target)
 	    {out=0;}
 	return out;
     }
+

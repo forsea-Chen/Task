@@ -32,6 +32,11 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
+/* USER CODE END Includes */
+
+/* Exported types ------------------------------------------------------------*/
+/* USER CODE BEGIN ET */
 double PID_OUTPUT(int16_t,int16_t);
 void car_run(int speed);
 void car_leftturn(int speed);
@@ -43,11 +48,6 @@ void car_stop();
 void motor_run(int,int);
 void motor_moni(int,int,int,int);
 void move(int vx,int vy,int w);
-/* USER CODE END Includes */
-
-/* Exported types ------------------------------------------------------------*/
-/* USER CODE BEGIN ET */
-
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
