@@ -33,7 +33,6 @@ uint16_t I1,SPEED1,I2,SPEED2,I3,SPEED3,I4,SPEED4;
 uint16_t DI=0;
 uint8_t Rxdata[8], Txdata[8]={0x10,0x10,0x10,0x10,0x10,0x10,0,0};
 uint16_t dv;
-uint16_t t=2000;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -296,7 +295,7 @@ static void MX_USART2_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART2_Init 2 */
-
+  __HAL_UART_ENABLE_IT(&huart2,UART_IT_IDLE);
   /* USER CODE END USART2_Init 2 */
 
 }

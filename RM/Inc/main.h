@@ -32,7 +32,9 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#define SIZE 255
+UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_usart2_rx;
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -48,11 +50,12 @@ void car_stop();
 void motor_run(int,int);
 void motor_moni(int,int,int,int);
 void move(int vx,int vy,int w);
+void USER_UART_IDLECallback(UART_HandleTypeDef *huart);
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
+uint8_t ctrl_data[255];
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/

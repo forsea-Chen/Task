@@ -225,7 +225,11 @@ void CAN1_RX1_IRQHandler(void)
 void USART2_IRQHandler(void)
 {
   /* USER CODE BEGIN USART2_IRQn 0 */
-
+    if(RESET !=__HAL_UART_GET_FLAG(&huart2,UART_FLAG_IDLE))
+            {
+      	  __HAL_UART_CLEAR_IDLEFLAG(&huart2);
+      	  USER_UART_IDLECallback(&huart2);
+            }
   /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);
   /* USER CODE BEGIN USART2_IRQn 1 */
