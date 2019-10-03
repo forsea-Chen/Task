@@ -20,93 +20,91 @@
 
 /* Includes ------------------------------------------------------------------*/
 
-#include <cmsis_os2.h>
-#include <main.h>
-#include <stddef.h>
+#include <can.h>
+#include <dma.h>
+#include <gpio.h>
 #include <stm32f405xx.h>
 #include <stm32f4xx.h>
+#include <stm32f4xx_hal.h>
 #include <stm32f4xx_hal_can.h>
-#include <stm32f4xx_hal_cortex.h>
 #include <stm32f4xx_hal_def.h>
-#include <stm32f4xx_hal_dma.h>
 #include <stm32f4xx_hal_flash_ex.h>
 #include <stm32f4xx_hal_pwr_ex.h>
 #include <stm32f4xx_hal_rcc.h>
 #include <stm32f4xx_hal_tim.h>
-#include <stm32f4xx_hal_uart.h>
 #include <sys/_stdint.h>
-
-#include "../Drivers/drv_dr16.h"
+#include <usart.h>
+#include "main.h"
+#include "control.h"
+#include "drv_dr16.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+uint16_t I1,SPEED1,I2,SPEED2,I3,SPEED3,I4,SPEED4;
+int16_t dv;
+int8_t Rxdata[8], Txdata[8]={0x10,0x10,0x10,0x10,0x10,0x10,0,0};
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-uint16_t I1,SPEED1,I2,SPEED2,I3,SPEED3,I4,SPEED4;
-//uint16_t DI=0;
-uint8_t Rxdata[8], Txdata[8]={0x10,0x10,0x10,0x10,0x10,0x10,0,0};
-int16_t dv;
-int8_t dr_buff[8];
-//uint8_t dr16_uart_rx_buff[DR16_RX_BUFFER_SIZE];
+void CAN_Transmit(CAN_HandleTypeDef *hcan,uint32_t Id,uint32_t DLC,int8_t data[]);
+void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[]);
+void USER_CAN_ConfigFilter(CAN_HandleTypeDef *hcan);
+void motor_moni(int v1,int v2,int v3,int v4);
+void motor_run(int ID,int speed);
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-void CAN_Transmit(CAN_HandleTypeDef *hcan,uint32_t Id,uint32_t DLC,int8_t data[]);
-void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[]);
-void USER_CAN_ConfigFilter(CAN_HandleTypeDef *hcan);
-void CAN_Receive2(CAN_HandleTypeDef *hcan,uint8_t aData[]);
-void USER_CAN_ConfigFilter2(CAN_HandleTypeDef *hcan);
+//uint8_t dr16_uart_rx_buff[DR16_RX_BUFFER_SIZE];
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+void move(int vx,int vy,int w)
+    {
+	int v1,v2,v3,v4;
+	v1=vy+vx-w*20;
+	v2=-(vy-vx+w*20);
+	v3=-(vy+vx+w*20);
+	v4=vy-vx-w*20;
+	motor_moni(v1,v2,v3,v4);
+    }
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-CAN_HandleTypeDef hcan1;
-CAN_HandleTypeDef hcan2;
 
-UART_HandleTypeDef huart2;
-DMA_HandleTypeDef hdma_usart2_rx;
-
-osThreadId_t defaultTaskHandle;
-osThreadId_t myTask02Handle;
-osMessageQueueId_t myQueue01Handle;
 /* USER CODE BEGIN PV */
-
+uint8_t rx_buff[255];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
-static void MX_DMA_Init(void);
-static void MX_CAN1_Init(void);
-static void MX_CAN2_Init(void);
-static void MX_USART2_UART_Init(void);
-void StartDefaultTask(void *argument);
-void StartTask02(void *argument);
-
 /* USER CODE BEGIN PFP */
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
-{
-  /* Prevent unused argument(s) compilation warning */
-  UNUSED(hcan);
- // CAN_Receive(hcan, Rxdata);
 
-  /* NOTE : This function Should not be modified, when the callback is needed,
-            the HAL_CAN_RxFifo0MsgPendingCallback could be implemented in the
-            user file
-   */
-}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+int16_t out;
+static int16_t error_i=0,error_d=0,error_last=0,error=0;
+static float kp=5.5,ki=0.23,kd=0.01;
+int16_t PID_OUTPUT(int16_t speed,int16_t target)
+    {
+
+	error=target-speed;
+	error_i+=error;
+	if(error_i>=3000)error_i=3000;
+	if(error_i<=-3000)error_i=-3000;
+	error_d=error-error_last;
+	error_last=error;
+	out=kp*error+ki*error_i+kd*error_d;
+	if((error>=0&&error<=20)||(error<0&&error>=-20))
+	    {out=0;}
+	if(out>=10000)out=10000;
+	if(out<=-10000)out=-10000;
+	return out;
+    }
 
 /* USER CODE END 0 */
 
@@ -144,64 +142,11 @@ int main(void)
   MX_CAN2_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+//  HAL_UART_Receive_DMA(&huart2,rx_buff,255);
   dr16_uart_init(&huart2);
-  USER_CAN_ConfigFilter(&hcan1);
-//  HAL_CAN_Start(&hcan1);
-//  USER_CAN_ConfigFilter2(&hcan2);
-  HAL_CAN_Start(&hcan1);
-//  HAL_CAN_Start(&hcan2);
+  USER_CAN_ConfigFilter(&hcan2);
+  HAL_CAN_Start(&hcan2);
   /* USER CODE END 2 */
-
-  osKernelInitialize();
-
-  /* USER CODE BEGIN RTOS_MUTEX */
-  /* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
-
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
-  /* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
-
-  /* USER CODE BEGIN RTOS_TIMERS */
-  /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
-
-  /* Create the queue(s) */
-  /* definition and creation of myQueue01 */
-  const osMessageQueueAttr_t myQueue01_attributes = {
-    .name = "myQueue01"
-  };
-  myQueue01Handle = osMessageQueueNew (4, sizeof(uint16_t), &myQueue01_attributes);
-
-  /* USER CODE BEGIN RTOS_QUEUES */
-  /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
-
-  /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  const osThreadAttr_t defaultTask_attributes = {
-    .name = "defaultTask",
-    .priority = (osPriority_t) osPriorityNormal,
-    .stack_size = 128
-  };
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
-
-  /* definition and creation of myTask02 */
-  const osThreadAttr_t myTask02_attributes = {
-    .name = "myTask02",
-    .priority = (osPriority_t) osPriorityBelowNormal,
-    .stack_size = 256
-  };
-  myTask02Handle = osThreadNew(StartTask02, NULL, &myTask02_attributes);
-
-  /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */
-  /* USER CODE END RTOS_THREADS */
-
-  /* Start scheduler */
-  osKernelStart();
-  
-  /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -210,7 +155,15 @@ int main(void)
       CAN_Receive(&hcan2, Rxdata);
  //     CAN_Receive2(&hcan2,dr_buff);
       data_slove();
-      move(0,0,w);
+      move(vx,vy,w);
+//      data_slove();
+//      Txdata[0]=vx>>8;
+//      Txdata[1]=vx&0xff;
+//      Txdata[2]=vy>>8;
+//      Txdata[3]=vy&0xff;
+//      Txdata[4]=w>>8;
+//      Txdata[5]=w&0xff;
+//      CAN_Transmit(&hcan2, 0x100, 8, Txdata);
       HAL_Delay(1);
     /* USER CODE END WHILE */
 
@@ -261,144 +214,6 @@ void SystemClock_Config(void)
   }
 }
 
-/**
-  * @brief CAN1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_CAN1_Init(void)
-{
-
-  /* USER CODE BEGIN CAN1_Init 0 */
-
-  /* USER CODE END CAN1_Init 0 */
-
-  /* USER CODE BEGIN CAN1_Init 1 */
-
-  /* USER CODE END CAN1_Init 1 */
-  hcan1.Instance = CAN1;
-  hcan1.Init.Prescaler = 3;
-  hcan1.Init.Mode = CAN_MODE_NORMAL;
-  hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan1.Init.TimeSeg1 = CAN_BS1_9TQ;
-  hcan1.Init.TimeSeg2 = CAN_BS2_4TQ;
-  hcan1.Init.TimeTriggeredMode = DISABLE;
-  hcan1.Init.AutoBusOff = DISABLE;
-  hcan1.Init.AutoWakeUp = DISABLE;
-  hcan1.Init.AutoRetransmission = DISABLE;
-  hcan1.Init.ReceiveFifoLocked = DISABLE;
-  hcan1.Init.TransmitFifoPriority = DISABLE;
-  if (HAL_CAN_Init(&hcan1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN CAN1_Init 2 */
-
-  /* USER CODE END CAN1_Init 2 */
-
-}
-
-/**
-  * @brief CAN2 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_CAN2_Init(void)
-{
-
-  /* USER CODE BEGIN CAN2_Init 0 */
-
-  /* USER CODE END CAN2_Init 0 */
-
-  /* USER CODE BEGIN CAN2_Init 1 */
-
-  /* USER CODE END CAN2_Init 1 */
-  hcan2.Instance = CAN2;
-  hcan2.Init.Prescaler = 3;
-  hcan2.Init.Mode = CAN_MODE_NORMAL;
-  hcan2.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan2.Init.TimeSeg1 = CAN_BS1_9TQ;
-  hcan2.Init.TimeSeg2 = CAN_BS2_4TQ;
-  hcan2.Init.TimeTriggeredMode = DISABLE;
-  hcan2.Init.AutoBusOff = DISABLE;
-  hcan2.Init.AutoWakeUp = DISABLE;
-  hcan2.Init.AutoRetransmission = DISABLE;
-  hcan2.Init.ReceiveFifoLocked = DISABLE;
-  hcan2.Init.TransmitFifoPriority = DISABLE;
-  if (HAL_CAN_Init(&hcan2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN CAN2_Init 2 */
-
-  /* USER CODE END CAN2_Init 2 */
-
-}
-
-/**
-  * @brief USART2 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_USART2_UART_Init(void)
-{
-
-  /* USER CODE BEGIN USART2_Init 0 */
-
-  /* USER CODE END USART2_Init 0 */
-
-  /* USER CODE BEGIN USART2_Init 1 */
-
-  /* USER CODE END USART2_Init 1 */
-  huart2.Instance = USART2;
-  huart2.Init.BaudRate = 100000;
-  huart2.Init.WordLength = UART_WORDLENGTH_8B;
-  huart2.Init.StopBits = UART_STOPBITS_1;
-  huart2.Init.Parity = UART_PARITY_EVEN;
-  huart2.Init.Mode = UART_MODE_RX;
-  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN USART2_Init 2 */
-  __HAL_UART_ENABLE_IT(&huart2,UART_IT_IDLE);
-  /* USER CODE END USART2_Init 2 */
-
-}
-
-/** 
-  * Enable DMA controller clock
-  */
-static void MX_DMA_Init(void) 
-{
-
-  /* DMA controller clock enable */
-  __HAL_RCC_DMA1_CLK_ENABLE();
-
-  /* DMA interrupt init */
-  /* DMA1_Stream5_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
-
-}
-
-/**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_GPIO_Init(void)
-{
-
-  /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-
-}
-
 /* USER CODE BEGIN 4 */
 void USER_CAN_ConfigFilter(CAN_HandleTypeDef *hcan)
       {
@@ -416,30 +231,6 @@ void USER_CAN_ConfigFilter(CAN_HandleTypeDef *hcan)
         HAL_CAN_ConfigFilter(hcan, &Filter0);
 //        HAL_CAN_ActivateNotification(hcan,CAN_IT_RX_FIFO0_MSG_PENDING);
       }
-void USER_CAN_ConfigFilter2(CAN_HandleTypeDef *hcan)
-      {
-      CAN_FilterTypeDef Filter1;
-        Filter1.FilterIdHigh = 0;
-        Filter1.FilterIdLow = 0;
-        Filter1.FilterMaskIdHigh = 0;
-        Filter1.FilterMaskIdLow = 0;
-        Filter1.FilterFIFOAssignment = CAN_RX_FIFO1;
-        Filter1.FilterBank = 14;        //?
-        Filter1.FilterMode = CAN_FILTERMODE_IDMASK;
-        Filter1.FilterScale = CAN_FILTERSCALE_32BIT;
-        Filter1.FilterActivation = ENABLE;
-        Filter1.SlaveStartFilterBank = 14;
-        HAL_CAN_ConfigFilter(hcan, &Filter1);
-//        HAL_CAN_ActivateNotification(hcan,CAN_IT_RX_FIFO0_MSG_PENDING);
-      }
-void CAN_Receive2(CAN_HandleTypeDef *hcan,uint8_t aData[])
-    {
-	CAN_RxHeaderTypeDef Rxhead;
-	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &Rxhead, aData);
-	vx=(aData[0]<<8)|aData[1];
-	vy=(aData[2]<<8)|aData[3];
-
-    }
 void CAN_Transmit(CAN_HandleTypeDef *hcan,uint32_t Id,uint32_t DLC,int8_t data[])
     {
 //    uint32_t pTxmailbox;
@@ -521,60 +312,32 @@ void motor_moni(int v1,int v2,int v3,int v4)
 	Txdata[7]=dv&0XFF;
 	CAN_Transmit(&hcan2,0x200,8,Txdata);
     }
+//void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[])
+//    {
+//	CAN_RxHeaderTypeDef Rxhead;
+//	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &Rxhead, aData);
+//	if(Rxhead.StdId==0x201)
+//	    {
+//	    SPEED1=((uint16_t)aData[2]<<8)+(uint16_t)aData[3];
+////	    I1=((uint16_t)Rxdata[4]<<8)+(uint16_t)Rxdata[5];
+//	    }
+//	if(Rxhead.StdId==0x202)
+//	    {
+//	    SPEED2=((uint16_t)aData[2]<<8)+(uint16_t)aData[3];
+////	    I2=(Rxdata[4]<<8)+Rxdata[5];
+//	    }
+//	if(Rxhead.StdId==0x203)
+//	    {
+//	    SPEED3=((uint16_t)aData[2]<<8)+(uint16_t)aData[3];
+////	    I3=((uint16_t)Rxdata[4]<<8)+Rxdata[5];
+//	    }
+//	if(Rxhead.StdId==0x204)
+//	    {
+//	    SPEED4=((uint16_t)aData[2]<<8)+(uint16_t)aData[3];
+////	    I4=(Rxdata[4]<<8)+Rxdata[5];
+//	    }
+//    }
 /* USER CODE END 4 */
-
-/* USER CODE BEGIN Header_StartDefaultTask */
-/**
-  * @brief  Function implementing the defaultTask thread.
-  * @param  argument: Not used 
-  * @retval None
-  */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
-{
-    
-    
-    
-    
-
-  /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-  for(;;)
-  {
-//      UART_Receive_DMA_No_IT(&huart2, dr16_uart_rx_buff, DR16_RX_BUFFER_SIZE);
-      CAN_Receive(&hcan1, Rxdata);
- //     CAN_Receive2(&hcan2,dr_buff);
-      data_slove();
-      move(vx,vy,w);
-//     motor_run(0x201,2000);
- //     motor_run(0x202,vy);
-      osDelay(1);
-  }
-  /* USER CODE END 5 */ 
-}
-
-/* USER CODE BEGIN Header_StartTask02 */
-/**
-* @brief Function implementing the myTask02 thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartTask02 */
-void StartTask02(void *argument)
-{
-  /* USER CODE BEGIN StartTask02 */
-  /* Infinite loop */
-  for(;;)
-  {
-      CAN_Receive(&hcan1, Rxdata);
- //     CAN_Receive2(&hcan2,dr_buff);
-      data_slove();
-      move(vx,vy,w);
- //  motor_run(0x201,2000);
-      osDelay(1);
-  }
-  /* USER CODE END StartTask02 */
-}
 
 /**
   * @brief  Period elapsed callback in non blocking mode
