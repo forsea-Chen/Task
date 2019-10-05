@@ -132,23 +132,23 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//      DI=(uint16_t)(PID_OUTPUT(SPEED1,2000));
-// //     I+=DI;
-//      Txdata[0]=DI>>8;
-//      Txdata[1]=DI&0XFF;
-//      CAN_Transmit(&hcan1,0x200,8,Txdata);
-      car_run(2000);
-      HAL_Delay(1000);
-      car_back(2000);
-      HAL_Delay(1000);
-      car_leftmove(2000);
-      HAL_Delay(1000);
-      car_rightmove(2000);
-      HAL_Delay(1000);
-      car_leftturn(2000);
-      HAL_Delay(1000);
-      car_rightturn(2000);
-      HAL_Delay(1000);
+      DI=(uint16_t)(PID_OUTPUT(SPEED1,2000));
+ //     I+=DI;
+      Txdata[0]=0;
+      Txdata[1]=0;
+      CAN_Transmit(&hcan1,0x200,8,Txdata);
+//      car_run(2000);
+//      HAL_Delay(1000);
+//      car_back(2000);
+//      HAL_Delay(1000);
+//      car_leftmove(2000);
+//      HAL_Delay(1000);
+//      car_rightmove(2000);
+//      HAL_Delay(1000);
+//      car_leftturn(2000);
+//      HAL_Delay(1000);
+//      car_rightturn(2000);
+//      HAL_Delay(1000);
 //      CAN_Receive(&hcan1, Rxdata);
     /* USER CODE END WHILE */
 
