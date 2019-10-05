@@ -32,7 +32,9 @@
 /* USER CODE BEGIN PTD */
 int16_t SPEED1,SPEED2,SPEED3,SPEED4;//?
 int16_t dv;
-#define TASK1_PRIO 1
+uint8_t dr_buff[8];
+uint16_t queue_t,queue_r;
+#define TASK1_PRIO 2
 #define TASK1_STK_SIZE 256
 TaskHandle_t TASK1_Handler;
 void TASK1(void *argument);
@@ -48,6 +50,8 @@ void TASK2(void *argument);
 void CAN_Transmit(CAN_HandleTypeDef *hcan,uint32_t Id,uint32_t DLC,uint8_t data[]);
 void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[]);//?
 void USER_CAN_ConfigFilter(CAN_HandleTypeDef *hcan);
+void CAN_Receive2(CAN_HandleTypeDef *hcan,uint8_t aData[]);
+void USER_CAN_ConfigFilter2(CAN_HandleTypeDef *hcan);
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -138,7 +142,12 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   dr16_uart_init(&huart2);
-  HAL_Delay(1000);
+  USER_CAN_ConfigFilter(&hcan2);
+//  USER_CAN_ConfigFilter2(&hcan1);
+  HAL_CAN_Start(&hcan2);
+  HAL_CAN_Start(&hcan1);
+//  HAL_Delay(1000);
+
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -405,13 +414,13 @@ void USER_CAN_ConfigFilter(CAN_HandleTypeDef *hcan)
         Filter0.FilterMaskIdHigh = 0;
         Filter0.FilterMaskIdLow = 0;
         Filter0.FilterFIFOAssignment = CAN_RX_FIFO0;
-        Filter0.FilterBank = 0;        //?
+        Filter0.FilterBank = 15;        //?
         Filter0.FilterMode = CAN_FILTERMODE_IDMASK;
         Filter0.FilterScale = CAN_FILTERSCALE_32BIT;
         Filter0.FilterActivation = ENABLE;
         Filter0.SlaveStartFilterBank = 14;
         HAL_CAN_ConfigFilter(hcan, &Filter0);
-//        HAL_CAN_ActivateNotification(hcan,CAN_IT_RX_FIFO0_MSG_PENDING);
+        HAL_CAN_ActivateNotification(hcan,CAN_IT_RX_FIFO0_MSG_PENDING);
       }
 void CAN_Transmit(CAN_HandleTypeDef *hcan,uint32_t Id,uint32_t DLC,uint8_t data[])
     {
@@ -448,34 +457,68 @@ void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[])
 	    SPEED4=((int16_t)aData[2]<<8)|(uint16_t)aData[3];
 	    }
     }
+void USER_CAN_ConfigFilter2(CAN_HandleTypeDef *hcan)
+      {
+      CAN_FilterTypeDef Filter1;
+        Filter1.FilterIdHigh = 0;
+        Filter1.FilterIdLow = 0;
+        Filter1.FilterMaskIdHigh = 0;
+        Filter1.FilterMaskIdLow = 0;
+        Filter1.FilterFIFOAssignment = CAN_RX_FIFO1;
+        Filter1.FilterBank = 14;        //?
+        Filter1.FilterMode = CAN_FILTERMODE_IDMASK;
+        Filter1.FilterScale = CAN_FILTERSCALE_32BIT;
+        Filter1.FilterActivation = ENABLE;
+        Filter1.SlaveStartFilterBank = 14;
+        HAL_CAN_ConfigFilter(hcan, &Filter1);
+//        HAL_CAN_ActivateNotification(hcan,CAN_IT_RX_FIFO0_MSG_PENDING);
+      }
+void CAN_Receive2(CAN_HandleTypeDef *hcan,uint8_t aData[])
+    {
+	CAN_RxHeaderTypeDef Rxhead;
+	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &Rxhead, aData);
+	vx=((int16_t) aData[0]<<8)|aData[1];
+	vy=((int16_t)aData[2]<<8)|aData[3];
+
+    }
 void motor_moni(int v1,int v2,int v3,int v4)
     {
 	dv=PID_OUTPUT(SPEED1,v1);
-	Txdata1[0]=dv>>8;
-	Txdata1[1]=dv&0XFF;
+	Txdata2[0]=dv>>8;
+	Txdata2[1]=dv&0XFF;
 	dv=PID_OUTPUT(SPEED2,v2);
-	Txdata1[2]=dv>>8;
-	Txdata1[3]=dv&0XFF;
+	Txdata2[2]=dv>>8;
+	Txdata2[3]=dv&0XFF;
 	dv=PID_OUTPUT(SPEED3,v3);
-	Txdata1[4]=dv>>8;
-	Txdata1[5]=dv&0XFF;
+	Txdata2[4]=dv>>8;
+	Txdata2[5]=dv&0XFF;
 	dv=PID_OUTPUT(SPEED4,v4);
-	Txdata1[6]=dv>>8;
-	Txdata1[7]=dv&0XFF;
-	CAN_Transmit(&hcan1,0x200,8,Txdata1);
+	Txdata2[6]=dv>>8;
+	Txdata2[7]=dv&0XFF;
+	CAN_Transmit(&hcan2,0x200,8,Txdata2);
     }
 void TASK1(void * argument)
     {
 	for(;;)
 	    {
-
+	    if(xQueueReceive(Queue01Handle,&queue_r,0)==pdTRUE)
+		HAL_IWDG_Refresh(&hiwdg);
+//	    CAN_Receive(&hcan1, Rxdata2);
+	    data_solve();
+//	    CAN_Receive2(&hcan1, Rxdata1);
+	    move(vx, vy, w);
+	    osDelay(1);
 	    }
     }
 void TASK2(void * argument)
     {
 	for(;;)
 	    {
-
+		xQueueSend(Queue01Handle,&queue_t,0);
+		    data_solve();
+//		    CAN_Receive2(&hcan1, Rxdata1);
+		    move(vx, vy, w);
+		    osDelay(1);
 	    }
     }
 /* USER CODE END 4 */

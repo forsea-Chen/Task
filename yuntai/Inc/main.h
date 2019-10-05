@@ -54,7 +54,7 @@ int16_t vx,vy,w;
  {
  uint8_t ch0_h:8; //!< Byte 0
 
- uint8_t ch0_l:3; //!< Byte 1   ：表示只用3个位
+ uint8_t ch0_l:3; //!< Byte 1   ：表示只�?3个位
  uint8_t ch1_h:5;
 
  uint8_t ch1_l:6; //!< Byte 2

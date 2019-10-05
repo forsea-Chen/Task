@@ -46,6 +46,8 @@ uint8_t Txdata1[8],Rxdata1[8],Txdata2[8],Rxdata2[8];
 /* USER CODE BEGIN EC */
 int16_t PID_OUTPUT(int16_t,int16_t);
 void motor_moni(int,int,int,int);
+void move(int16_t,int16_t,int16_t);
+void data_solve();
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/

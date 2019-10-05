@@ -270,7 +270,7 @@ void USART2_IRQHandler(void)
 //          	  USER_UART_IDLECallback(&huart2);
 //                }
     dr16_uart_rx_data_handle(&huart2);
-    /* USER CODE END USART2_IRQn 0 */
+  /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);
   /* USER CODE BEGIN USART2_IRQn 1 */
 

@@ -19,36 +19,26 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
-
-#include <can.h>
-#include <dma.h>
-#include <gpio.h>
-#include <stm32f405xx.h>
-#include <stm32f4xx.h>
-#include <stm32f4xx_hal.h>
-#include <stm32f4xx_hal_can.h>
-#include <stm32f4xx_hal_def.h>
-#include <stm32f4xx_hal_flash_ex.h>
-#include <stm32f4xx_hal_pwr_ex.h>
-#include <stm32f4xx_hal_rcc.h>
-#include <stm32f4xx_hal_tim.h>
-#include <sys/_stdint.h>
-#include <usart.h>
 #include "main.h"
-#include "control.h"
-#include "drv_dr16.h"
+#include "can.h"
+#include "dma.h"
+#include "usart.h"
+#include "gpio.h"
+
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-uint16_t I1,SPEED1,I2,SPEED2,I3,SPEED3,I4,SPEED4;
+#include "drv_dr16.h"
+#include "control.h"
+int16_t I1,SPEED1,I2,SPEED2,I3,SPEED3,I4,SPEED4;
 int16_t dv;
-int8_t Rxdata[8], Txdata[8]={0x10,0x10,0x10,0x10,0x10,0x10,0,0};
+uint8_t Rxdata[8], Txdata[8]={0x10,0x10,0x10,0x10,0x10,0x10,0,0};
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-void CAN_Transmit(CAN_HandleTypeDef *hcan,uint32_t Id,uint32_t DLC,int8_t data[]);
-void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[]);
+void CAN_Transmit(CAN_HandleTypeDef *hcan,uint32_t Id,uint32_t DLC,uint8_t data[]);
+//void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[]);
 void USER_CAN_ConfigFilter(CAN_HandleTypeDef *hcan);
 void motor_moni(int v1,int v2,int v3,int v4);
 void motor_run(int ID,int speed);
@@ -87,15 +77,15 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 int16_t out;
-static int16_t error_i=0,error_d=0,error_last=0,error=0;
+int16_t error_i=0,error_d=0,error_last=0,error=0;
 static float kp=5.5,ki=0.23,kd=0.01;
 int16_t PID_OUTPUT(int16_t speed,int16_t target)
     {
 
 	error=target-speed;
-	error_i+=error;
-	if(error_i>=3000)error_i=3000;
-	if(error_i<=-3000)error_i=-3000;
+	error_i=error+error_i;
+	if(error_i>=5000)error_i=5000;
+	if(error_i<=-5000)error_i=-5000;
 	error_d=error-error_last;
 	error_last=error;
 	out=kp*error+ki*error_i+kd*error_d;
@@ -105,7 +95,17 @@ int16_t PID_OUTPUT(int16_t speed,int16_t target)
 	if(out<=-10000)out=-10000;
 	return out;
     }
-
+//void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+//{
+//  /* Prevent unused argument(s) compilation warning */
+//  UNUSED(hcan);
+//  CAN_Receive(hcan, Rxdata);
+//
+//  /* NOTE : This function Should not be modified, when the callback is needed,
+//            the HAL_CAN_RxFifo0MsgPendingCallback could be implemented in the
+//            user file
+//   */
+//}
 /* USER CODE END 0 */
 
 /**
@@ -125,7 +125,6 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -144,26 +143,26 @@ int main(void)
   /* USER CODE BEGIN 2 */
 //  HAL_UART_Receive_DMA(&huart2,rx_buff,255);
   dr16_uart_init(&huart2);
-  USER_CAN_ConfigFilter(&hcan2);
-  HAL_CAN_Start(&hcan2);
+//  USER_CAN_ConfigFilter(&hcan1);
+  HAL_CAN_Start(&hcan1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      CAN_Receive(&hcan2, Rxdata);
+//      CAN_Receive(&hcan2, Rxdata);
  //     CAN_Receive2(&hcan2,dr_buff);
       data_slove();
-      move(vx,vy,w);
+//      move(500,500,w);
 //      data_slove();
-//      Txdata[0]=vx>>8;
-//      Txdata[1]=vx&0xff;
-//      Txdata[2]=vy>>8;
-//      Txdata[3]=vy&0xff;
-//      Txdata[4]=w>>8;
-//      Txdata[5]=w&0xff;
-//      CAN_Transmit(&hcan2, 0x100, 8, Txdata);
+      Txdata[0]=vx>>8;
+      Txdata[1]=vx&0xff;
+      Txdata[2]=vy>>8;
+      Txdata[3]=vy&0xff;
+      Txdata[4]=w>>8;
+      Txdata[5]=w&0xff;
+      CAN_Transmit(&hcan1, 0x100, 8, Txdata);
       HAL_Delay(1);
     /* USER CODE END WHILE */
 
@@ -229,9 +228,9 @@ void USER_CAN_ConfigFilter(CAN_HandleTypeDef *hcan)
         Filter0.FilterActivation = ENABLE;
         Filter0.SlaveStartFilterBank = 14;
         HAL_CAN_ConfigFilter(hcan, &Filter0);
-//        HAL_CAN_ActivateNotification(hcan,CAN_IT_RX_FIFO0_MSG_PENDING);
+        HAL_CAN_ActivateNotification(hcan,CAN_IT_RX_FIFO0_MSG_PENDING);
       }
-void CAN_Transmit(CAN_HandleTypeDef *hcan,uint32_t Id,uint32_t DLC,int8_t data[])
+void CAN_Transmit(CAN_HandleTypeDef *hcan,uint32_t Id,uint32_t DLC,uint8_t data[])
     {
 //    uint32_t pTxmailbox;
     CAN_TxHeaderTypeDef Txhead1;
@@ -245,31 +244,31 @@ void CAN_Transmit(CAN_HandleTypeDef *hcan,uint32_t Id,uint32_t DLC,int8_t data[]
 	}
     return;
     }
-void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[])
-    {
-	CAN_RxHeaderTypeDef Rxhead;
-	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &Rxhead, aData);
-	if(Rxhead.StdId==0x201)
-	    {
-	    SPEED1=((uint16_t)aData[2]<<8)+(uint16_t)aData[3];
-//	    I1=((uint16_t)Rxdata[4]<<8)+(uint16_t)Rxdata[5];
-	    }
-	if(Rxhead.StdId==0x202)
-	    {
-	    SPEED2=((uint16_t)aData[2]<<8)+(uint16_t)aData[3];
-//	    I2=(Rxdata[4]<<8)+Rxdata[5];
-	    }
-	if(Rxhead.StdId==0x203)
-	    {
-	    SPEED3=((uint16_t)aData[2]<<8)+(uint16_t)aData[3];
-//	    I3=((uint16_t)Rxdata[4]<<8)+Rxdata[5];
-	    }
-	if(Rxhead.StdId==0x204)
-	    {
-	    SPEED4=((uint16_t)aData[2]<<8)+(uint16_t)aData[3];
-//	    I4=(Rxdata[4]<<8)+Rxdata[5];
-	    }
-    }
+//void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[])
+//    {
+//	CAN_RxHeaderTypeDef Rxhead;
+//	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &Rxhead, aData);
+//	if(Rxhead.StdId==0x201)
+//	    {
+//	    SPEED1=((int16_t)aData[2]<<8)|(int16_t)aData[3];
+////	    I1=((uint16_t)Rxdata[4]<<8)+(uint16_t)Rxdata[5];
+//	    }
+//	if(Rxhead.StdId==0x202)
+//	    {
+//	    SPEED2=((int16_t)aData[2]<<8)|(int16_t)aData[3];
+////	    I2=(Rxdata[4]<<8)+Rxdata[5];
+//	    }
+//	if(Rxhead.StdId==0x203)
+//	    {
+//	    SPEED3=((int16_t)aData[2]<<8)|(int16_t)aData[3];
+////	    I3=((uint16_t)Rxdata[4]<<8)+Rxdata[5];
+//	    }
+//	if(Rxhead.StdId==0x204)
+//	    {
+//	    SPEED4=((int16_t)aData[2]<<8)|(int16_t)aData[3];
+////	    I4=(Rxdata[4]<<8)+Rxdata[5];
+//	    }
+//    }
 void motor_run(int ID,int speed)
       {
       switch(ID)
@@ -298,19 +297,19 @@ void motor_run(int ID,int speed)
       }
 void motor_moni(int v1,int v2,int v3,int v4)
     {
-	dv=(uint16_t)(PID_OUTPUT(SPEED1,v1));
+	dv=(int16_t)(PID_OUTPUT(SPEED1,v1));
 	Txdata[0]=dv>>8;
-	Txdata[1]=dv&0XFF;
-	dv=(uint16_t)(PID_OUTPUT(SPEED1,v2));
+	Txdata[1]=(int8_t)(dv&0X7F);
+	dv=(int16_t)(PID_OUTPUT(SPEED2,v2));
 	Txdata[2]=dv>>8;
-	Txdata[3]=dv&0XFF;
-	dv=(uint16_t)(PID_OUTPUT(SPEED1,v3));
+	Txdata[3]=(int8_t)(dv&0X7F);
+	dv=(int16_t)(PID_OUTPUT(SPEED3,v3));
 	Txdata[4]=dv>>8;
-	Txdata[5]=dv&0XFF;
-	dv=(uint16_t)(PID_OUTPUT(SPEED1,v4));
+	Txdata[5]=(int8_t)(dv&0X7F);
+	dv=(int16_t)(PID_OUTPUT(SPEED4,v4));
 	Txdata[6]=dv>>8;
-	Txdata[7]=dv&0XFF;
-	CAN_Transmit(&hcan2,0x200,8,Txdata);
+	Txdata[7]=(int8_t)(dv&0X7F);
+	CAN_Transmit(&hcan1,0x200,8,Txdata);
     }
 //void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[])
 //    {
@@ -347,18 +346,18 @@ void motor_moni(int v1,int v2,int v3,int v4)
   * @param  htim : TIM handle
   * @retval None
   */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  /* USER CODE BEGIN Callback 0 */
-
-  /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM7) {
-    HAL_IncTick();
-  }
-  /* USER CODE BEGIN Callback 1 */
-
-  /* USER CODE END Callback 1 */
-}
+//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+//{
+//  /* USER CODE BEGIN Callback 0 */
+//
+//  /* USER CODE END Callback 0 */
+//  if (htim->Instance == TIM7) {
+//    HAL_IncTick();
+//  }
+//  /* USER CODE BEGIN Callback 1 */
+//
+//  /* USER CODE END Callback 1 */
+//}
 
 /**
   * @brief  This function is executed in case of error occurrence.

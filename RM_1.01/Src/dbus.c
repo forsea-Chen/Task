@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include "stm32f4xx_hal_uart.h"
 #include "main.h"
+#include "drv_dr16.h"
 
 rc_device_t g_rc_device;
 
@@ -49,6 +50,7 @@ void rc_info_update(rc_device_t *rc_device, uint8_t *buff)
 }
 void data_solve()
     {
+    rc_info_update(&g_rc_device,dr16_uart_rx_buff);
 	vx=(g_rc_device.rc_info.ch3)*2.4;
 	vy=(g_rc_device.rc_info.ch4)*2.4;
     }
