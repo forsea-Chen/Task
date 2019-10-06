@@ -6,7 +6,7 @@
  */
 #include "main.h"
 
-void move(int16_t vx,int16_t vy,int16_t w)
+void move(int16_t vx,int16_t vy,float w)
     {
 	int v1,v2,v3,v4;
 	v1=vy+vx-w*20;

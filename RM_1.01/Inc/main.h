@@ -37,7 +37,8 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-int16_t vx,vy,w;
+int16_t vx,vy;
+float w;
 uint8_t Txdata1[8],Rxdata1[8],Txdata2[8],Rxdata2[8];
 
 /* USER CODE END ET */
@@ -46,12 +47,19 @@ uint8_t Txdata1[8],Rxdata1[8],Txdata2[8],Rxdata2[8];
 /* USER CODE BEGIN EC */
 int16_t PID_OUTPUT(int16_t,int16_t);
 void motor_moni(int,int,int,int);
-void move(int16_t,int16_t,int16_t);
+void move(int16_t,int16_t,float);
 void data_solve();
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
+typedef struct
+{
+  float angle ;
+  int16_t vx ;
+  int16_t vy ;
+
+}__attribute__ ((packed)) CAN2_RX;
 
 /* USER CODE END EM */
 

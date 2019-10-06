@@ -19,13 +19,16 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
-#include "cmsis_os.h"
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+#include <cmsis_os.h>
+#include <main.h>
+
+#include <string.h>
+#include <sys/_stdint.h>
+#include <task.h>
+
 #include "drv_dr16.h"
-#include "dbus.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -94,16 +97,29 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
   /* Prevent unused argument(s) compilation warning */
   UNUSED(hcan);
- if(hcan==&hcan1)
-  CAN_Receive(hcan, Rxdata1);
- if(hcan==&hcan2)
-     CAN_Receive(hcan, Rxdata2);
+  if(hcan==&hcan1)
+  CAN_Receive(&hcan1,Rxdata1);
+  if(hcan==&hcan2)
+  CAN_Receive2(&hcan2, Rxdata2);
 
   /* NOTE : This function Should not be modified, when the callback is needed,
             the HAL_CAN_RxFifo0MsgPendingCallback could be implemented in the
             user file
    */
 }
+//void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
+//{
+//  /* Prevent unused argument(s) compilation warning */
+//  UNUSED(hcan);
+//
+//   CAN_Receive2(&hcan2, Rxdata2);
+//
+//
+//  /* NOTE : This function Should not be modified, when the callback is needed,
+//            the HAL_CAN_RxFifo0MsgPendingCallback could be implemented in the
+//            user file
+//   */
+//}
 /* USER CODE END 0 */
 
 /**
@@ -141,11 +157,12 @@ int main(void)
   MX_IWDG_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  dr16_uart_init(&huart2);
-  USER_CAN_ConfigFilter(&hcan2);
-//  USER_CAN_ConfigFilter2(&hcan1);
+//  dr16_uart_init(&huart2);
+  USER_CAN_ConfigFilter(&hcan1);
+  USER_CAN_ConfigFilter2(&hcan2);
   HAL_CAN_Start(&hcan2);
   HAL_CAN_Start(&hcan1);
+
 //  HAL_Delay(1000);
 
   /* USER CODE END 2 */
@@ -414,7 +431,7 @@ void USER_CAN_ConfigFilter(CAN_HandleTypeDef *hcan)
         Filter0.FilterMaskIdHigh = 0;
         Filter0.FilterMaskIdLow = 0;
         Filter0.FilterFIFOAssignment = CAN_RX_FIFO0;
-        Filter0.FilterBank = 15;        //?
+        Filter0.FilterBank = 0;        //?
         Filter0.FilterMode = CAN_FILTERMODE_IDMASK;
         Filter0.FilterScale = CAN_FILTERSCALE_32BIT;
         Filter0.FilterActivation = ENABLE;
@@ -436,7 +453,7 @@ void CAN_Transmit(CAN_HandleTypeDef *hcan,uint32_t Id,uint32_t DLC,uint8_t data[
 	}
     return;
     }
-void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[])
+void CAN_Receive2(CAN_HandleTypeDef *hcan,uint8_t aData[])
     {
 	CAN_RxHeaderTypeDef Rxhead;
 	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &Rxhead, aData);
@@ -464,21 +481,30 @@ void USER_CAN_ConfigFilter2(CAN_HandleTypeDef *hcan)
         Filter1.FilterIdLow = 0;
         Filter1.FilterMaskIdHigh = 0;
         Filter1.FilterMaskIdLow = 0;
-        Filter1.FilterFIFOAssignment = CAN_RX_FIFO1;
-        Filter1.FilterBank = 14;        //?
+        Filter1.FilterFIFOAssignment = CAN_RX_FIFO0;
+        Filter1.FilterBank = 15;        //?
         Filter1.FilterMode = CAN_FILTERMODE_IDMASK;
         Filter1.FilterScale = CAN_FILTERSCALE_32BIT;
         Filter1.FilterActivation = ENABLE;
         Filter1.SlaveStartFilterBank = 14;
         HAL_CAN_ConfigFilter(hcan, &Filter1);
-//        HAL_CAN_ActivateNotification(hcan,CAN_IT_RX_FIFO0_MSG_PENDING);
+        HAL_CAN_ActivateNotification(hcan,CAN_IT_RX_FIFO0_MSG_PENDING);
       }
-void CAN_Receive2(CAN_HandleTypeDef *hcan,uint8_t aData[])
+void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[])
     {
 	CAN_RxHeaderTypeDef Rxhead;
-	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &Rxhead, aData);
-	vx=((int16_t) aData[0]<<8)|aData[1];
-	vy=((int16_t)aData[2]<<8)|aData[3];
+	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &Rxhead, aData);
+	if(Rxhead.StdId==0x233)
+	    {
+		CAN2_RX can2_data;
+		memcpy(&can2_data,aData,sizeof(CAN2_RX));
+		vx=-(can2_data.vx)*3;
+		vy=-(can2_data.vy)*3;
+		w=(can2_data.angle)*3;
+	    }
+	//	angle=
+//	vx=((int16_t) aData[4]<<8)|aData[5];
+//	vy=((int16_t)aData[6]<<8)|aData[7];
 
     }
 void motor_moni(int v1,int v2,int v3,int v4)
@@ -504,7 +530,7 @@ void TASK1(void * argument)
 	    if(xQueueReceive(Queue01Handle,&queue_r,0)==pdTRUE)
 		HAL_IWDG_Refresh(&hiwdg);
 //	    CAN_Receive(&hcan1, Rxdata2);
-	    data_solve();
+//	    data_solve();
 //	    CAN_Receive2(&hcan1, Rxdata1);
 	    move(vx, vy, w);
 	    osDelay(1);
@@ -515,7 +541,7 @@ void TASK2(void * argument)
 	for(;;)
 	    {
 		xQueueSend(Queue01Handle,&queue_t,0);
-		    data_solve();
+//		    data_solve();
 //		    CAN_Receive2(&hcan1, Rxdata1);
 		    move(vx, vy, w);
 		    osDelay(1);
