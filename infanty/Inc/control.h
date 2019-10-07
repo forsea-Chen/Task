@@ -10,7 +10,7 @@
 
 #include <Motor.h>
 #include <MotorControl.h>
-#include "MotorControl.h"
+
 
 #ifdef __cplusplus
 extern "C" {

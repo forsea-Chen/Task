@@ -19,32 +19,20 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
-
-#include <cmsis_os.h>
-#include <drv_dr16.h>
-#include <stddef.h>
-#include <stm32f405xx.h>
-#include <stm32f4xx.h>
-#include <stm32f4xx_hal_can.h>
-#include <stm32f4xx_hal_cortex.h>
-#include <stm32f4xx_hal_def.h>
-#include <stm32f4xx_hal_dma.h>
-#include <stm32f4xx_hal_flash_ex.h>
-#include <stm32f4xx_hal_iwdg.h>
-#include <stm32f4xx_hal_pwr_ex.h>
-#include <stm32f4xx_hal_rcc.h>
-#include <stm32f4xx_hal_tim.h>
-#include <stm32f4xx_hal_uart.h>
-#include <sys/_stdint.h>
 #include "main.h"
+#include "cmsis_os.h"
 
-/* USER CODE END Includes */
-#include "PID.h"
-#include "MotorControl.h"
-#include "Motor.h"
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
 #include "dbus.h"
-#include "control.h"
 #include "drv_can.h"
+#include "drv_dr16.h"
+#include "control.h"
+#include "Motor.h"
+#include "MotorControl.h"
+#include "systemtimer.h"
+/* USER CODE END Includes */
+
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
@@ -74,6 +62,8 @@ CAN_HandleTypeDef hcan2;
 
 IWDG_HandleTypeDef hiwdg;
 
+TIM_HandleTypeDef htim4;
+
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_rx;
 
@@ -91,6 +81,7 @@ static void MX_CAN1_Init(void);
 static void MX_CAN2_Init(void);
 static void MX_IWDG_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_TIM4_Init(void);
 void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
@@ -136,6 +127,7 @@ int main(void)
   MX_CAN2_Init();
   MX_IWDG_Init();
   MX_USART2_UART_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   systemtimer_init();
   dr16_uart_init(&huart2);
@@ -176,7 +168,7 @@ int main(void)
   /* USER CODE END RTOS_THREADS */
 
   /* Start scheduler */
-//  osKernelStart();
+  osKernelStart();
   
   /* We should never get here as control is now taken by the scheduler */
 
@@ -340,6 +332,51 @@ static void MX_IWDG_Init(void)
 }
 
 /**
+  * @brief TIM4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM4_Init(void)
+{
+
+  /* USER CODE BEGIN TIM4_Init 0 */
+
+  /* USER CODE END TIM4_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM4_Init 1 */
+
+  /* USER CODE END TIM4_Init 1 */
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 83;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 65534;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM4_Init 2 */
+
+  /* USER CODE END TIM4_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -404,6 +441,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
 int32_t CAN_Callback(CAN_RxHeaderTypeDef *header, uint8_t *data)
     {
 //    CAN_RxHeaderTypeDef rx_header;
@@ -419,7 +457,7 @@ void TASK1(void *argument)
 	    if(xQueueReceive(Queue01Handle,&queue_r,0)==pdTRUE)
 		HAL_IWDG_Refresh(&hiwdg);
 	    data_solve();
-	    move(vx,1000,wx,wy,s1,s2);
+	    move(vx,vy,wx,wy,s1,s2);
 	    CAN_Transmit();
 	    osDelay(1);
 	}
@@ -486,7 +524,7 @@ void StartDefaultTask(void const * argument)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
-
+    systemtimer_callback(&htim4);
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM7) {
     HAL_IncTick();

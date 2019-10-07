@@ -21,8 +21,6 @@
 #ifndef __STM32F4xx_HAL_FLASH_EX_H
 #define __STM32F4xx_HAL_FLASH_EX_H
 
-#include <sys/_stdint.h>
-
 #ifdef __cplusplus
  extern "C" {
 #endif
