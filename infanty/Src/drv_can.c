@@ -20,7 +20,7 @@
 #include <stm32f4xx.h>
 #include <stm32f4xx_hal_can.h>
 #include <sys/_stdint.h>
-
+#include "control.h"
 //#include "can.h"
 
 extern CAN_HandleTypeDef hcan1;
@@ -293,5 +293,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
         (*(can2_manage.can_rec_callback[i]))(&rx_header, rx_data);
       }
     }
+//    motor_update(&rx_header,rx_data);
   }
 }

@@ -1,4 +1,6 @@
 #include "PID.h"
+#include <sys/_stdint.h>
+#include "cmath"
 
 uint8_t PIDTimer::UpdataTimeStamp(void)
 {

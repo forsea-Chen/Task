@@ -53,13 +53,12 @@ public:
     }
     virtual void Adjust() override
     {
-        SpeedPID.Current = motor->getSpeed();
+        SpeedPID.Current = motor->getSpeed();//current目前转速
         motor->Out = SpeedPID.Adjust();
     }
     SpeedPIDType SpeedPID;
     MotorSpeed* const motor;
 };
-
 
 template<class AnglePIDType, class SpeedPIDType>
 class MotorCascadeCtrl : public MotorCtrlBase

@@ -29,6 +29,7 @@ extern "C" {
 #endif
 
 #include "fifo.h"
+#include "stm32f4xx_hal_can.h"
 
 typedef int32_t (*can_stdmsg_rx_callback_t)(CAN_RxHeaderTypeDef *header, uint8_t *data);
 

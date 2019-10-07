@@ -20,7 +20,17 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+
+#include <main.h>
+#include <stm32f405xx.h>
+#include <stm32f4xx_hal_can.h>
+#include <stm32f4xx_hal_cortex.h>
+#include <stm32f4xx_hal_def.h>
+#include <stm32f4xx_hal_dma.h>
+#include <stm32f4xx_hal_gpio.h>
+#include <stm32f4xx_hal_uart.h>
+#include <sys/_stdint.h>
+
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */

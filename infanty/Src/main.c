@@ -19,14 +19,32 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
+
+#include <cmsis_os.h>
+#include <drv_dr16.h>
+#include <stddef.h>
+#include <stm32f405xx.h>
+#include <stm32f4xx.h>
+#include <stm32f4xx_hal_can.h>
+#include <stm32f4xx_hal_cortex.h>
+#include <stm32f4xx_hal_def.h>
+#include <stm32f4xx_hal_dma.h>
+#include <stm32f4xx_hal_flash_ex.h>
+#include <stm32f4xx_hal_iwdg.h>
+#include <stm32f4xx_hal_pwr_ex.h>
+#include <stm32f4xx_hal_rcc.h>
+#include <stm32f4xx_hal_tim.h>
+#include <stm32f4xx_hal_uart.h>
+#include <sys/_stdint.h>
 #include "main.h"
-#include "cmsis_os.h"
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
-#include "drv_dr16.h"
 /* USER CODE END Includes */
-
+#include "PID.h"
+#include "MotorControl.h"
+#include "Motor.h"
+#include "dbus.h"
+#include "control.h"
+#include "drv_can.h"
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
@@ -34,12 +52,20 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+uint16_t queue_t,queue_r;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+#define TASK1_PRIO 2
+#define TASK1_STK_SIZE 256
+TaskHandle_t TASK1_Handler;
+void TASK1(void *argument);
 
+#define TASK2_PRIO 1
+#define TASK2_STK_SIZE 256
+TaskHandle_t TASK2_Handler;
+void TASK2(void *argument);
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -68,7 +94,7 @@ static void MX_USART2_UART_Init(void);
 void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
-
+int32_t CAN_Callback(CAN_RxHeaderTypeDef *header, uint8_t *data);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -111,7 +137,12 @@ int main(void)
   MX_IWDG_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  systemtimer_init();
   dr16_uart_init(&huart2);
+  can_manage_init();
+  can_fifo0_rx_callback_register(&can2_manage,CAN_Callback);
+
+  PID_set(16,0.3,0.1);
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -145,7 +176,7 @@ int main(void)
   /* USER CODE END RTOS_THREADS */
 
   /* Start scheduler */
-  osKernelStart();
+//  osKernelStart();
   
   /* We should never get here as control is now taken by the scheduler */
 
@@ -153,6 +184,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+//	    data_solve();
+	    move(vx,1000,wx,wy,s1,s2);
+	    CAN_Transmit();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -370,7 +404,36 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+int32_t CAN_Callback(CAN_RxHeaderTypeDef *header, uint8_t *data)
+    {
+//    CAN_RxHeaderTypeDef rx_header;
+//      uint8_t rx_data[8];
+      HAL_CAN_GetRxMessage(&hcan2, CAN_RX_FIFO0, header, data);
+	motor_update(header, data);
+return (int32_t) data[0];
+    }
+void TASK1(void *argument)
+    {
+    for(;;)
+	{
+	    if(xQueueReceive(Queue01Handle,&queue_r,0)==pdTRUE)
+		HAL_IWDG_Refresh(&hiwdg);
+	    data_solve();
+	    move(vx,1000,wx,wy,s1,s2);
+	    CAN_Transmit();
+	    osDelay(1);
+	}
+    }
 
+void TASK2(void *argument)
+    {
+    for(;;)
+	{
+	    xQueueSend(Queue01Handle,&queue_t,0);
+
+	    osDelay(1);
+	}
+    }
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -390,6 +453,23 @@ void StartDefaultTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+      taskENTER_CRITICAL();
+            xTaskCreate((TaskFunction_t)TASK1,
+      		  (const char*	 )"TASK1",
+      		  (uint16_t	 )TASK1_STK_SIZE,
+      		  (void*	 )NULL,
+      		  (UBaseType_t	 )TASK1_PRIO,
+      		  (TaskHandle_t* )TASK1_Handler
+      		  );
+            xTaskCreate((TaskFunction_t)TASK2,
+            		  (const char*	 )"TASK2",
+            		  (uint16_t	 )TASK2_STK_SIZE,
+            		  (void*	 )NULL,
+            		  (UBaseType_t	 )TASK2_PRIO,
+            		  (TaskHandle_t* )TASK2_Handler
+            		  );
+            vTaskDelete(defaultTaskHandle);
+            taskEXIT_CRITICAL();
     osDelay(1);
   }
   /* USER CODE END 5 */ 

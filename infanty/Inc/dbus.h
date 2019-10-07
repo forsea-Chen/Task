@@ -10,6 +10,8 @@ extern "C" {
 int16_t vx,vy,wx,wy;
 uint16_t s1,s2,isonline;
 
+void data_solve();
+
 typedef struct
 {
   int64_t ch1 :11;

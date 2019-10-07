@@ -19,6 +19,8 @@
 #ifndef _SYSTEMTIMER_H_
 #define _SYSTEMTIMER_H_
 
+#include <sys/_stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
