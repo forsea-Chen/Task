@@ -60,20 +60,20 @@ void move(int16_t vx,int16_t vy,int16_t wx,int16_t wy,uint16_t s1,uint16_t s2)
 	v2=-(vy-vx+wx*20);
 	v3=-(vy+vx+wx*20);
 	v4=vy-vx-wx*20;
-	if(s1==1)
-	    {
-		 chassis_ctrl[0].setTarget(-1000);
-		 chassis_ctrl[1].setTarget(1000);
-		 chassis_ctrl[2].setTarget(1000);
-		 chassis_ctrl[3].setTarget(-1000);
-	    }
-	else
-	    {
+//	if(s1==1)
+//	    {
+//		 chassis_ctrl[0].setTarget(-1000);
+//		 chassis_ctrl[1].setTarget(1000);
+//		 chassis_ctrl[2].setTarget(1000);
+//		 chassis_ctrl[3].setTarget(-1000);
+//	    }
+//	else
+//	    {
 		 chassis_ctrl[0].setTarget(v1);
 		 chassis_ctrl[1].setTarget(v2);
 		 chassis_ctrl[2].setTarget(v3);
 		 chassis_ctrl[3].setTarget(v4);
-	    }
+//	    }
 	 chassis_ctrl[0].Adjust();
 	 chassis_ctrl[1].Adjust();
 	 chassis_ctrl[2].Adjust();

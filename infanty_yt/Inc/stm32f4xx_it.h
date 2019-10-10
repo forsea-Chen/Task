@@ -1,9 +1,8 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
+  * @file    stm32f4xx_it.h
+  * @brief   This file contains the headers of the interrupt handlers.
   ******************************************************************************
   * @attention
   *
@@ -15,40 +14,31 @@
   * License. You may obtain a copy of the License at:
   *                        opensource.org/licenses/BSD-3-Clause
   *
-  ******************************************************************************
+ ******************************************************************************
   */
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H
-#define __MAIN_H
+#ifndef __STM32F4xx_IT_H
+#define __STM32F4xx_IT_H
 
 #ifdef __cplusplus
-extern "C" {
-#endif
-
-/* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx_hal.h"
+ extern "C" {
+#endif 
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-//#include "Motor.h"
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-//Motor_C620 chassis_motor[] = { Motor_C620(1), Motor_C620(2), Motor_C620(3), Motor_C620(4) };
+
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-typedef struct
-{
-  int16_t vx ;
-  int16_t vy ;
-  int16_t angle;
-  int16_t s;
-}__attribute__ ((packed)) CAN2_RX;
+
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -57,21 +47,30 @@ typedef struct
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
-void Error_Handler(void);
-
+void NMI_Handler(void);
+void HardFault_Handler(void);
+void MemManage_Handler(void);
+void BusFault_Handler(void);
+void UsageFault_Handler(void);
+void DebugMon_Handler(void);
+void DMA1_Stream5_IRQHandler(void);
+void CAN1_TX_IRQHandler(void);
+void CAN1_RX0_IRQHandler(void);
+void CAN1_RX1_IRQHandler(void);
+void TIM4_IRQHandler(void);
+void USART2_IRQHandler(void);
+void TIM7_IRQHandler(void);
+void CAN2_TX_IRQHandler(void);
+void CAN2_RX0_IRQHandler(void);
+void CAN2_RX1_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */
-
-/* Private defines -----------------------------------------------------------*/
-/* USER CODE BEGIN Private defines */
-
-/* USER CODE END Private defines */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __MAIN_H */
+#endif /* __STM32F4xx_IT_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

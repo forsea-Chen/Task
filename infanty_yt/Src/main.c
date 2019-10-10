@@ -27,34 +27,36 @@
 #include "dbus.h"
 #include "drv_can.h"
 #include "drv_dr16.h"
-#include "control.h"
-#include "Motor.h"
-#include "MotorControl.h"
 #include "systemtimer.h"
+#include "control.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+/*#include "dbus.h"
+#include "drv_can.h"
+#include "drv_dr16.h"
+#include "systemtimer.h"*/
 
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 uint16_t queue_t,queue_r;
-uint8_t Rxdata1[8];
-/* USER CODE END PD */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
 #define TASK1_PRIO 2
-#define TASK1_STK_SIZE 256
+#define TASK1_STK_SIZE 512
 TaskHandle_t TASK1_Handler;
 void TASK1(void *argument);
 
 #define TASK2_PRIO 1
-#define TASK2_STK_SIZE 256
+#define TASK2_STK_SIZE 1024
 TaskHandle_t TASK2_Handler;
 void TASK2(void *argument);
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -81,13 +83,14 @@ static void MX_DMA_Init(void);
 static void MX_CAN1_Init(void);
 static void MX_CAN2_Init(void);
 static void MX_IWDG_Init(void);
-static void MX_USART2_UART_Init(void);
 static void MX_TIM4_Init(void);
+static void MX_USART2_UART_Init(void);
 void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
-int32_t CAN_Callback(CAN_RxHeaderTypeDef *header, uint8_t *data);
-void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[]);
+int32_t chat_Callback(CAN_RxHeaderTypeDef *header, uint8_t *data);
+void CAN_Transmit(CAN_HandleTypeDef *hcan,uint32_t Id,uint32_t DLC,uint8_t data[]);
+extern uint8_t head_motor_update(CAN_RxHeaderTypeDef *header, uint8_t can_rx_data[]);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -128,15 +131,15 @@ int main(void)
   MX_CAN1_Init();
   MX_CAN2_Init();
   MX_IWDG_Init();
-  MX_USART2_UART_Init();
   MX_TIM4_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  systemtimer_init();
   dr16_uart_init(&huart2);
+  systemtimer_init();
   can_manage_init();
-  can_fifo0_rx_callback_register(&can2_manage,CAN_Callback);
-
-  PID_set(16,0.3,0.1);
+  head_PID_updata();
+  can_fifo0_rx_callback_register(&can2_manage, chat_Callback);
+  can_fifo0_rx_callback_register(&can1_manage, head_motor_update);
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -178,9 +181,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//	    data_solve();
-	    move(vx,1000,wx,wy,s1,s2);
-	    CAN_Transmit();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -342,7 +342,7 @@ static void MX_TIM4_Init(void)
 {
 
   /* USER CODE BEGIN TIM4_Init 0 */
-
+    systemtimer_callback(&htim4);
   /* USER CODE END TIM4_Init 0 */
 
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
@@ -443,54 +443,57 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
-int32_t CAN_Callback(CAN_RxHeaderTypeDef *header, uint8_t *data)
+int32_t chat_Callback(CAN_RxHeaderTypeDef *header, uint8_t *data)
     {
-//    CAN_RxHeaderTypeDef rx_header;
-//      uint8_t rx_data[8];
-      HAL_CAN_GetRxMessage(&hcan2, CAN_RX_FIFO0, header, data);
-	motor_update(header, data);
-return (int32_t) data[0];
+	return (int32_t) 1;
     }
-void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[])
+void CAN_Transmit(CAN_HandleTypeDef *hcan,uint32_t Id,uint32_t DLC,uint8_t data[])
     {
-	CAN_RxHeaderTypeDef Rxhead;
-	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &Rxhead, aData);
-	if(Rxhead.StdId==0x100)
-	    {
-		CAN2_RX can2_data;
-		memcpy(&can2_data,aData,sizeof(CAN2_RX));
-		vx=can2_data.vx;
-		vy=can2_data.vy;
-		wx=can2_data.angle;
-	    }
-	//	angle=
-//	vx=((int16_t) aData[4]<<8)|aData[5];
-//	vy=((int16_t)aData[6]<<8)|aData[7];
-
+//    uint32_t pTxmailbox;
+    CAN_TxHeaderTypeDef Txhead1;
+    Txhead1.StdId=Id;
+    Txhead1.DLC=DLC;
+    Txhead1.IDE=CAN_ID_STD;
+    Txhead1.RTR=CAN_RTR_DATA;
+	Txdata[0]=vx>>8;
+	Txdata[1]=vx&0xff;
+	Txdata[2]=vy>>8;
+	Txdata[3]=vy&0xff;
+	Txdata[4]=WX>>8;
+	Txdata[5]=WX&0xff;
+	Txdata[6]=(s1<<4)|(s2);
+    if(HAL_CAN_AddTxMessage(hcan, &Txhead1, data, (uint32_t*)CAN_TX_MAILBOX0)!=HAL_OK)
+	{
+	    Error_Handler();
+	}
+    return;
     }
 void TASK1(void *argument)
     {
-    for(;;)
-	{
-	    if(xQueueReceive(Queue01Handle,&queue_r,0)==pdTRUE)
-		HAL_IWDG_Refresh(&hiwdg);
-	    data_solve();
-//	    CAN_Receive(&hcan1,Rxdata1);
-	    osDelay(1);
-	}
-    }
+	for(;;)
+	    {
+		if(xQueueReceive(Queue01Handle,&queue_r,0)==pdTRUE)
+		    HAL_IWDG_Refresh(&hiwdg);
 
-void TASK2(void *argument)
-    {
-    for(;;)
-	{
-	    xQueueSend(Queue01Handle,&queue_t,0);
-	    move(vx,vy,wx,wy,s1,s2);
-	    CAN_Transmit();
-	    osDelay(1);
-	}
+		data_solve();
+		ctrl_data();
+		osDelay(2);
+	    }
     }
+void TASK2(void *argument)
+        {
+    	for(;;)
+    	    {
+    		xQueueSend(Queue01Handle,&queue_t,0);
+  //  		data_solve();
+    		yaw_adjust(wx);
+    		if(wy>=110) wy=110;
+    		if(wy<=-110) wy=-110;
+    		picth_adjust(wy/660*180);//660*180
+    		CAN_Transmit(&hcan2,0x100,8,Txdata);
+    		osDelay(2);
+    	    }
+        }
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -510,23 +513,23 @@ void StartDefaultTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-      taskENTER_CRITICAL();
-            xTaskCreate((TaskFunction_t)TASK1,
-      		  (const char*	 )"TASK1",
-      		  (uint16_t	 )TASK1_STK_SIZE,
-      		  (void*	 )NULL,
-      		  (UBaseType_t	 )TASK1_PRIO,
-      		  (TaskHandle_t* )TASK1_Handler
-      		  );
-            xTaskCreate((TaskFunction_t)TASK2,
-            		  (const char*	 )"TASK2",
-            		  (uint16_t	 )TASK2_STK_SIZE,
-            		  (void*	 )NULL,
-            		  (UBaseType_t	 )TASK2_PRIO,
-            		  (TaskHandle_t* )TASK2_Handler
-            		  );
-            vTaskDelete(defaultTaskHandle);
-            taskEXIT_CRITICAL();
+           taskENTER_CRITICAL();
+                 xTaskCreate((TaskFunction_t)TASK1,
+           		  (const char*	 )"TASK1",
+           		  (uint16_t	 )TASK1_STK_SIZE,
+           		  (void*	 )NULL,
+           		  (UBaseType_t	 )TASK1_PRIO,
+           		  (TaskHandle_t* )TASK1_Handler
+           		  );
+                 xTaskCreate((TaskFunction_t)TASK2,
+                 		  (const char*	 )"TASK2",
+                 		  (uint16_t	 )TASK2_STK_SIZE,
+                 		  (void*	 )NULL,
+                 		  (UBaseType_t	 )TASK2_PRIO,
+                 		  (TaskHandle_t* )TASK2_Handler
+                 		  );
+                 vTaskDelete(defaultTaskHandle);
+                 taskEXIT_CRITICAL();
     osDelay(1);
   }
   /* USER CODE END 5 */ 
@@ -543,7 +546,7 @@ void StartDefaultTask(void const * argument)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
-    systemtimer_callback(&htim4);
+
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM7) {
     HAL_IncTick();

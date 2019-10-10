@@ -23,32 +23,30 @@
 #ifndef __MAIN_H
 #define __MAIN_H
 
+#include <sys/_stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
-
+#include "stm32f4xx_hal_can.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-//#include "Motor.h"
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-//Motor_C620 chassis_motor[] = { Motor_C620(1), Motor_C620(2), Motor_C620(3), Motor_C620(4) };
+int16_t vx,vy,wx,wy,WX;
+uint16_t s1,s2,isonline;
+uint8_t Txdata[8];
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-typedef struct
-{
-  int16_t vx ;
-  int16_t vy ;
-  int16_t angle;
-  int16_t s;
-}__attribute__ ((packed)) CAN2_RX;
+
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/

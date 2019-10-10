@@ -1,9 +1,12 @@
-#include <stdlib.h>
-#include <string.h>
-#include <sys/_stdint.h>
 #include "dbus.h"
+#include <string.h>
+#include <stdlib.h>
 #include "drv_dr16.h"
+#include "main.h"
+#include "control.h"
+#include "math.h"
 
+extern int16_t angle;
 rc_device_t g_rc_device;
 
 void rc_info_update(rc_device_t *rc_device, uint8_t *buff)
@@ -48,8 +51,26 @@ void data_solve()
 	s1=g_rc_device.rc_info.sw1;
 	s2=g_rc_device.rc_info.sw2;
 
-	wx=(g_rc_device.rc_info.ch1);
-	wy=(g_rc_device.rc_info.ch2);
+	wx=g_rc_device.rc_info.ch1/10;
+	wy=((g_rc_device.rc_info.ch2)/660)*90;
+	if(wy>=30) wy=30;
+	if(wy<=-30) wy=-30;
 
 	isonline=g_rc_device.isOnline;
+
+    }
+void ctrl_data()
+    {
+	int16_t x=vx,y=vy;
+	if(s1==1)
+	    {
+		WX=2000;
+		vx=y*(-sin(angle))+x*cos(angle);
+		vy=y*cos(angle)+x*sin(angle);
+
+	    }
+	else
+	    {
+	    WX=angle*5;
+	    }
     }
