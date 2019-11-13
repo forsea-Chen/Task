@@ -1,0 +1,10 @@
+19:34:23 **** Incremental Build of configuration Debug for project yuntai ****
+make -j4 all 
+arm-none-eabi-size   yuntai.elf 
+   text	   data	    bss	    dec	    hex	filename
+  18304	     24	   2272	  20600	   5078	yuntai.elf
+Finished building: default.size.stdout
+ 
+
+19:34:25 Build Finished. 0 errors, 0 warnings. (took 2s.143ms)
+

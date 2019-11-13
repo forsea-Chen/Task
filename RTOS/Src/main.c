@@ -52,12 +52,20 @@ QueueHandle_t QUEUE2;
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-uint8_t rx_buff1[5];
+uint8_t* rx_buff1;
+uint8_t message[2];
 uint8_t rx_buff2[5];
-uint8_t uart_buff[5];
-uint8_t meg1[]="usart";
+typedef struct
+{
+    char* taskname;
+    UBaseType_t prio;
+}S;
 //uint8_t meg2="task";
 int send;
+uint8_t* add;
+char name;
+UBaseType_t pri;
+S RX;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -119,7 +127,7 @@ int main(void)
   MX_DMA_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-HAL_UART_Receive_IT(&huart1,uart_buff,5);
+//HAL_UART_Receive_IT(&huart1,uart_buff,1);
   /* USER CODE END 2 */
 
   osKernelInitialize();
@@ -296,10 +304,15 @@ void TASK1(void *argument)
   /* Infinite loop */
   for(;;)
   {
-      HAL_UART_Transmit_DMA(&huart1,data1,1);
-      send++;
-     if(send>=9)send=0;
-     xQueueSend(QUEUE2,&send,0);
+//      HAL_UART_Transmit_DMA(&huart1,data1,1);
+//      send++;
+//     if(send>=9)send=0;
+//     xQueueSend(QUEUE2,&send,0);
+      S TASK;
+      TASK.taskname=pcTaskGetName(NULL);
+      TASK.prio=uxTaskPriorityGet(NULL);
+      xQueueSend(QUEUE2,&TASK,0);
+//      add=S;
     osDelay(5);
   }
   /* USER CODE END 5 */
@@ -314,15 +327,16 @@ void TASK2(void *argument)
   /* Infinite loop */
   for(;;)
   {
-//      HAL_Delay(100);       //加了这句后第一个任务执行16次后才会执行这个任务，不加这句话会跳过下一行代码（两次串口发送之间需要时间）
+//      HAL_Delay(100);       //加了这句后第�?个任务执�?16次后才会执行这个任务，不加这句话会跳过下�?行代码（两次串口发�?�之间需要时间）
       HAL_UART_Transmit_DMA(&huart1,data2,1);
  //     xQueueReceive(QUEUE1,rx_buff1,0);
-      if(xQueueReceive(QUEUE1,rx_buff1,0)==pdTRUE)//receive时间100时会卡死
+      if(xQueueReceive(QUEUE1,&rx_buff1,0)==pdTRUE)//receive时间100时会卡死
 	  {
-	      HAL_UART_Transmit_DMA(&huart1,meg1,1);
+	  message[0]=*rx_buff1;
+	  HAL_UART_Transmit_DMA(&huart1,message,1);
 	  }
-      HAL_UART_Transmit_DMA(&huart1,data2,1);
-      if(xQueueReceive(QUEUE2,rx_buff2,0)==pdTRUE)
+ //     HAL_UART_Transmit_DMA(&huart1,data2,1);
+      if(xQueueReceive(QUEUE2,&RX,0)==pdTRUE)
       	  {
       	      HAL_UART_Transmit_DMA(&huart1,(uint8_t*)rx_buff2,1);
       	  }
@@ -335,7 +349,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   /* Prevent unused argument(s) compilation warning */
   UNUSED(huart);
-  xQueueSend(QUEUE1,uart_buff,100);
+//  add=;
+//  xQueueSendFromISR(QUEUE1,&add,0);
   /* NOTE: This function should not be modified, when the callback is needed,
            the HAL_UART_RxCpltCallback could be implemented in the user file
    */
@@ -393,7 +408,17 @@ void StartDefaultTask(void *argument)
             		  );
             vTaskDelete(defaultTaskHandle);
             taskEXIT_CRITICAL();
-            osDelay(2);
+//      HAL_UART_Transmit_DMA(&huart1,data1,1);
+//      send++;
+//     if(send>=9)send=0;
+//     xQueueSend(QUEUE2,&send,0);
+//      S TASK1;
+//      TASK1.taskname=pcTaskGetName(NULL);
+//      TASK1.prio=uxTaskPriorityGet(NULL);
+//      name=*(TASK1.taskname);
+//      pri=TASK1.prio;
+//      add=S;
+    osDelay(5);
   }
   /* USER CODE END 5 */ 
 }

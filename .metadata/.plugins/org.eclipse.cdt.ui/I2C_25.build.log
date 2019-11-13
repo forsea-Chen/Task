@@ -1,0 +1,6 @@
+17:46:56 **** Incremental Build of configuration Debug for project I2C_25 ****
+make -j4 all 
+Command canceled
+
+17:46:57 Build Cancelled. (took 1s.299ms)
+

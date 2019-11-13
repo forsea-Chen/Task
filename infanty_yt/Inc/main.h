@@ -39,7 +39,8 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-int16_t vx,vy,wx,wy,WX;
+int16_t vx,vy,WX,VX,VY;
+float wx,wy;
 uint16_t s1,s2,isonline;
 uint8_t Txdata[8];
 /* USER CODE END ET */

@@ -38,9 +38,9 @@ void USER_CAN_ConfigFilter(CAN_HandleTypeDef *hcan);
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-uint16_t I1,SPEED1,I2,SPEED2,I3,SPEED3,I4,SPEED4;
+int16_t I1,SPEED1,I2,SPEED2,I3,SPEED3,I4,SPEED4;
 uint16_t DI=0;
-uint8_t Rxdata[8], Txdata[8]={0x10,0x10,0x10,0x10,0x10,0x10,0,0};
+uint8_t Rxdata[8], Txdata[8]={0x10,0x10,0,0,0x10,0x10,0,0};
 uint16_t dv;
 uint16_t t=2000;
 
@@ -136,7 +136,7 @@ int main(void)
  //     I+=DI;
       Txdata[0]=0;
       Txdata[1]=0;
-      CAN_Transmit(&hcan1,0x200,8,Txdata);
+  //    CAN_Transmit(&hcan1,0x200,8,Txdata);
 //      car_run(2000);
 //      HAL_Delay(1000);
 //      car_back(2000);
@@ -375,13 +375,13 @@ void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[])
 	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &Rxhead, aData);
 	if(Rxhead.StdId==0x201)
 	    {
-	    SPEED1=((uint16_t)Rxdata[2]<<8)+(uint16_t)Rxdata[3];
-//	    I1=((uint16_t)Rxdata[4]<<8)+(uint16_t)Rxdata[5];
+	    SPEED1=((int16_t)Rxdata[2]<<8)+(uint16_t)Rxdata[3];
+	    I1=((int16_t)Rxdata[0]<<8)|(uint16_t)Rxdata[1];
 	    }
 	if(Rxhead.StdId==0x202)
 	    {
-	    SPEED2=((uint16_t)Rxdata[2]<<8)+(uint16_t)Rxdata[3];
-//	    I2=(Rxdata[4]<<8)+Rxdata[5];
+	    SPEED2=((uint16_t)Rxdata[2]<<8)|(uint16_t)Rxdata[3];
+	    I2=((int16_t)Rxdata[0]<<8)|Rxdata[1];
 	    }
 	if(Rxhead.StdId==0x203)
 	    {

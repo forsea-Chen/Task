@@ -90,7 +90,7 @@ void StartDefaultTask(void const * argument);
 /* USER CODE BEGIN PFP */
 int32_t chat_Callback(CAN_RxHeaderTypeDef *header, uint8_t *data);
 void CAN_Transmit(CAN_HandleTypeDef *hcan,uint32_t Id,uint32_t DLC,uint8_t data[]);
-extern uint8_t head_motor_update(CAN_RxHeaderTypeDef *header, uint8_t can_rx_data[]);
+extern int32_t head_motor_update(CAN_RxHeaderTypeDef *header, uint8_t can_rx_data[]);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -455,10 +455,10 @@ void CAN_Transmit(CAN_HandleTypeDef *hcan,uint32_t Id,uint32_t DLC,uint8_t data[
     Txhead1.DLC=DLC;
     Txhead1.IDE=CAN_ID_STD;
     Txhead1.RTR=CAN_RTR_DATA;
-	Txdata[0]=vx>>8;
-	Txdata[1]=vx&0xff;
-	Txdata[2]=vy>>8;
-	Txdata[3]=vy&0xff;
+	Txdata[0]=VX>>8;
+	Txdata[1]=VX&0xff;
+	Txdata[2]=VY>>8;
+	Txdata[3]=VY&0xff;
 	Txdata[4]=WX>>8;
 	Txdata[5]=WX&0xff;
 	Txdata[6]=(s1<<4)|(s2);
@@ -485,11 +485,10 @@ void TASK2(void *argument)
     	for(;;)
     	    {
     		xQueueSend(Queue01Handle,&queue_t,0);
-  //  		data_solve();
-    		yaw_adjust(wx);
-    		if(wy>=110) wy=110;
-    		if(wy<=-110) wy=-110;
-    		picth_adjust(wy/660*180);//660*180
+//    		yaw_adjust(wx);
+//    		if(wy>=110) wy=110;
+//    		if(wy<=-110) wy=-110;
+ //   		picth_adjust(wy);//660*180
     		CAN_Transmit(&hcan2,0x100,8,Txdata);
     		osDelay(2);
     	    }

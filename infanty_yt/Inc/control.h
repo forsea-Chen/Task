@@ -22,7 +22,7 @@ extern "C" {
 void head_PID_updata();
 void yaw_adjust(float angle);
 void picth_adjust(float angle);
-uint8_t head_motor_update(CAN_RxHeaderTypeDef *header, uint8_t can_rx_data[]);
+int32_t head_motor_update(CAN_RxHeaderTypeDef *header, uint8_t can_rx_data[]);
 
 #ifdef __cplusplus
 }

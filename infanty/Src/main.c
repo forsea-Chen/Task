@@ -31,30 +31,39 @@
 #include "Motor.h"
 #include "MotorControl.h"
 #include "systemtimer.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+extern void Sent_Contorl(UART_HandleTypeDef* huart_x);
+extern void send_solve();
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 uint16_t queue_t,queue_r;
-uint8_t Rxdata1[8];
+uint8_t Rxdata1[8],uart_buff[255];
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 #define TASK1_PRIO 2
-#define TASK1_STK_SIZE 256
+#define TASK1_STK_SIZE 512
 TaskHandle_t TASK1_Handler;
 void TASK1(void *argument);
 
 #define TASK2_PRIO 1
-#define TASK2_STK_SIZE 256
+#define TASK2_STK_SIZE 1024
 TaskHandle_t TASK2_Handler;
 void TASK2(void *argument);
+
+#define DATATASK_PRIO 1
+#define DATATASK_STK_SIZE 256
+TaskHandle_t DATATASK_Handler;
+void DATATASK(void *argument);
+
+SemaphoreHandle_t Binary;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -65,7 +74,12 @@ IWDG_HandleTypeDef hiwdg;
 
 TIM_HandleTypeDef htim4;
 
+UART_HandleTypeDef huart4;
+UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_uart4_rx;
+DMA_HandleTypeDef hdma_usart1_rx;
+DMA_HandleTypeDef hdma_usart1_tx;
 DMA_HandleTypeDef hdma_usart2_rx;
 
 osThreadId defaultTaskHandle;
@@ -83,11 +97,13 @@ static void MX_CAN2_Init(void);
 static void MX_IWDG_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM4_Init(void);
+static void MX_UART4_Init(void);
+static void MX_USART1_UART_Init(void);
 void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
-int32_t CAN_Callback(CAN_RxHeaderTypeDef *header, uint8_t *data);
-void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[]);
+extern int32_t CAN_Callback(CAN_RxHeaderTypeDef *header, uint8_t *data);
+int32_t CAN_Receive(CAN_RxHeaderTypeDef *header, uint8_t *data);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -102,7 +118,9 @@ void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[]);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+kp=1;
+ki=0;
+kd=0;
   /* USER CODE END 1 */
   
 
@@ -130,13 +148,17 @@ int main(void)
   MX_IWDG_Init();
   MX_USART2_UART_Init();
   MX_TIM4_Init();
+  MX_UART4_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   systemtimer_init();
-  dr16_uart_init(&huart2);
+  __HAL_UART_ENABLE_IT(&huart4,UART_IT_IDLE);
+//  dr16_uart_init(&huart2);
   can_manage_init();
   can_fifo0_rx_callback_register(&can2_manage,CAN_Callback);
-
-  PID_set(16,0.3,0.1);
+  can_fifo0_rx_callback_register(&can1_manage,CAN_Receive);
+  PID_SET(kp,ki,kd);
+  HAL_UART_Receive_DMA(&huart4,uart_buff,255);
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -178,9 +200,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//	    data_solve();
-	    move(vx,1000,wx,wy,s1,s2);
-	    CAN_Transmit();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -379,6 +398,72 @@ static void MX_TIM4_Init(void)
 }
 
 /**
+  * @brief UART4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_UART4_Init(void)
+{
+
+  /* USER CODE BEGIN UART4_Init 0 */
+
+  /* USER CODE END UART4_Init 0 */
+
+  /* USER CODE BEGIN UART4_Init 1 */
+
+  /* USER CODE END UART4_Init 1 */
+  huart4.Instance = UART4;
+  huart4.Init.BaudRate = 9600;
+  huart4.Init.WordLength = UART_WORDLENGTH_8B;
+  huart4.Init.StopBits = UART_STOPBITS_1;
+  huart4.Init.Parity = UART_PARITY_NONE;
+  huart4.Init.Mode = UART_MODE_TX_RX;
+  huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart4.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN UART4_Init 2 */
+
+  /* USER CODE END UART4_Init 2 */
+
+}
+
+/**
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART1_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART1_Init 0 */
+
+  /* USER CODE END USART1_Init 0 */
+
+  /* USER CODE BEGIN USART1_Init 1 */
+
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART1_Init 2 */
+
+  /* USER CODE END USART1_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -419,11 +504,21 @@ static void MX_DMA_Init(void)
 
   /* DMA controller clock enable */
   __HAL_RCC_DMA1_CLK_ENABLE();
+  __HAL_RCC_DMA2_CLK_ENABLE();
 
   /* DMA interrupt init */
+  /* DMA1_Stream2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
   /* DMA1_Stream5_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
+  /* DMA2_Stream2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
+  /* DMA2_Stream7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
 
 }
 
@@ -444,30 +539,20 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-int32_t CAN_Callback(CAN_RxHeaderTypeDef *header, uint8_t *data)
+
+int32_t CAN_Receive(CAN_RxHeaderTypeDef *header, uint8_t *data)
     {
-//    CAN_RxHeaderTypeDef rx_header;
-//      uint8_t rx_data[8];
-      HAL_CAN_GetRxMessage(&hcan2, CAN_RX_FIFO0, header, data);
-	motor_update(header, data);
-return (int32_t) data[0];
-    }
-void CAN_Receive(CAN_HandleTypeDef *hcan,uint8_t aData[])
-    {
-	CAN_RxHeaderTypeDef Rxhead;
-	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &Rxhead, aData);
-	if(Rxhead.StdId==0x100)
+//	CAN_RxHeaderTypeDef Rxhead;
+//	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &Rxhead, aData);
+	if(header->StdId == 0x100)
 	    {
 		CAN2_RX can2_data;
-		memcpy(&can2_data,aData,sizeof(CAN2_RX));
+		memcpy(&can2_data,data,sizeof(CAN2_RX));
 		vx=can2_data.vx;
 		vy=can2_data.vy;
 		wx=can2_data.angle;
 	    }
-	//	angle=
-//	vx=((int16_t) aData[4]<<8)|aData[5];
-//	vy=((int16_t)aData[6]<<8)|aData[7];
-
+	return 0;
     }
 void TASK1(void *argument)
     {
@@ -475,21 +560,49 @@ void TASK1(void *argument)
 	{
 	    if(xQueueReceive(Queue01Handle,&queue_r,0)==pdTRUE)
 		HAL_IWDG_Refresh(&hiwdg);
-	    data_solve();
+//	    data_solve();
 //	    CAN_Receive(&hcan1,Rxdata1);
-	    osDelay(1);
+	    Sent_Contorl(&huart1);
+	    osDelay(10);
 	}
     }
 
-void TASK2(void *argument)
+void
+TASK2(void *argument)
     {
     for(;;)
 	{
 	    xQueueSend(Queue01Handle,&queue_t,0);
-	    move(vx,vy,wx,wy,s1,s2);
-	    CAN_Transmit();
-	    osDelay(1);
+//	    move(vx,vy,wx,wy,s1,s2);
+//	    CAN_Transmit();
+	    PID_SET(kp,ki,kd);
+	    chassis_set(vx,vy,wx);
+	    HAL_Delay(1);
+	    chassis_adjust();
+
+	    osDelay(10);
 	}
+    }
+void DATATASK(void *argument)
+    {
+	BaseType_t err=pdFALSE;
+	for(;;)
+	    {
+		err=xSemaphoreTake(Binary,portMAX_DELAY);
+		if(err==pdTRUE)
+		    {
+			send_solve();
+		    }
+		osDelay(1);
+	    }
+    }
+void USER_UART_IDLECallback(UART_HandleTypeDef *huart)
+    {
+	HAL_UART_DMAStop(huart);
+	uint8_t data_length=255-__HAL_DMA_GET_COUNTER(&hdma_uart4_rx);
+	RecHandle(uart_buff,data_length);
+	data_length=0;
+	HAL_UART_Receive_DMA(huart, uart_buff, 255);
     }
 /* USER CODE END 4 */
 
@@ -511,6 +624,8 @@ void StartDefaultTask(void const * argument)
   for(;;)
   {
       taskENTER_CRITICAL();
+      Binary=xSemaphoreCreateBinary();
+
             xTaskCreate((TaskFunction_t)TASK1,
       		  (const char*	 )"TASK1",
       		  (uint16_t	 )TASK1_STK_SIZE,
@@ -525,9 +640,16 @@ void StartDefaultTask(void const * argument)
             		  (UBaseType_t	 )TASK2_PRIO,
             		  (TaskHandle_t* )TASK2_Handler
             		  );
+            xTaskCreate((TaskFunction_t)DATATASK,
+      		  (const char*	 )"DATATASK",
+      		  (uint16_t	 )DATATASK_STK_SIZE,
+      		  (void*	 )NULL,
+      		  (UBaseType_t	 )DATATASK_PRIO,
+      		  (TaskHandle_t* )DATATASK_Handler
+      		  );
             vTaskDelete(defaultTaskHandle);
+
             taskEXIT_CRITICAL();
-    osDelay(1);
   }
   /* USER CODE END 5 */ 
 }

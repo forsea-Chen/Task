@@ -33,7 +33,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-int16_t SPEED1,SPEED2,SPEED3,SPEED4;//?
+int16_t SPEED1,SPEED2,SPEED3,SPEED4,angle1;//?
 int16_t dv;
 uint8_t dr_buff[8];
 uint16_t queue_t,queue_r;
@@ -460,6 +460,7 @@ void CAN_Receive2(CAN_HandleTypeDef *hcan,uint8_t aData[])
 	if(Rxhead.StdId==0x201)
 	    {
 	    SPEED1=((int16_t)aData[2]<<8)|(uint16_t)aData[3];
+	    angle1=((int16_t)aData[0]<<8)|(uint16_t)aData[1];
 	    }
 	if(Rxhead.StdId==0x202)
 	    {

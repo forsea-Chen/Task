@@ -1,0 +1,10 @@
+17:19:52 **** Build of configuration Debug for project pid_25 ****
+make -j4 all 
+arm-none-eabi-size   pid_25.elf 
+   text	   data	    bss	    dec	    hex	filename
+   8972	     16	   1680	  10668	   29ac	pid_25.elf
+Finished building: default.size.stdout
+ 
+
+17:19:55 Build Finished. 0 errors, 0 warnings. (took 3s.229ms)
+

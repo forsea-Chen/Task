@@ -1,0 +1,118 @@
+15:20:14 **** Clean-only build of configuration Debug for project engineer ****
+make -j4 clean 
+rm -rf *
+ 
+15:20:16 **** Incremental Build of configuration Debug for project engineer ****
+make -j4 all 
+arm-none-eabi-gcc -mcpu=cortex-m4 -g3 -c -I../ -x assembler-with-cpp --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Startup/startup_stm32f405rgtx.o" "../Startup/startup_stm32f405rgtx.s"
+arm-none-eabi-gcc "../Src/can.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DSTM32F405xx -DUSE_HAL_DRIVER -DDEBUG -c -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Inc -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/can.d" -MT"Src/can.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/can.o"
+arm-none-eabi-gcc "../Src/dma.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DSTM32F405xx -DUSE_HAL_DRIVER -DDEBUG -c -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Inc -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/dma.d" -MT"Src/dma.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/dma.o"
+arm-none-eabi-gcc "../Src/freertos.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DSTM32F405xx -DUSE_HAL_DRIVER -DDEBUG -c -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Inc -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/freertos.d" -MT"Src/freertos.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/freertos.o"
+arm-none-eabi-gcc "../Src/gpio.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DSTM32F405xx -DUSE_HAL_DRIVER -DDEBUG -c -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Inc -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/gpio.d" -MT"Src/gpio.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/gpio.o"
+arm-none-eabi-gcc "../Src/i2c.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DSTM32F405xx -DUSE_HAL_DRIVER -DDEBUG -c -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Inc -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/i2c.d" -MT"Src/i2c.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/i2c.o"
+arm-none-eabi-gcc "../Src/iwdg.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DSTM32F405xx -DUSE_HAL_DRIVER -DDEBUG -c -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Inc -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/iwdg.d" -MT"Src/iwdg.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/iwdg.o"
+arm-none-eabi-gcc "../Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DSTM32F405xx -DUSE_HAL_DRIVER -DDEBUG -c -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Inc -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/main.d" -MT"Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/main.o"
+arm-none-eabi-gcc "../Src/stm32f4xx_hal_msp.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DSTM32F405xx -DUSE_HAL_DRIVER -DDEBUG -c -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Inc -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/stm32f4xx_hal_msp.d" -MT"Src/stm32f4xx_hal_msp.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/stm32f4xx_hal_msp.o"
+arm-none-eabi-gcc "../Src/stm32f4xx_hal_timebase_tim.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DSTM32F405xx -DUSE_HAL_DRIVER -DDEBUG -c -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Inc -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/stm32f4xx_hal_timebase_tim.d" -MT"Src/stm32f4xx_hal_timebase_tim.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/stm32f4xx_hal_timebase_tim.o"
+arm-none-eabi-gcc "../Src/stm32f4xx_it.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DSTM32F405xx -DUSE_HAL_DRIVER -DDEBUG -c -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Inc -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/stm32f4xx_it.d" -MT"Src/stm32f4xx_it.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/stm32f4xx_it.o"
+arm-none-eabi-gcc "../Src/syscalls.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DSTM32F405xx -DUSE_HAL_DRIVER -DDEBUG -c -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Inc -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/syscalls.d" -MT"Src/syscalls.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/syscalls.o"
+arm-none-eabi-gcc "../Src/sysmem.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DSTM32F405xx -DUSE_HAL_DRIVER -DDEBUG -c -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Inc -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/sysmem.d" -MT"Src/sysmem.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/sysmem.o"
+arm-none-eabi-gcc "../Src/system_stm32f4xx.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DSTM32F405xx -DUSE_HAL_DRIVER -DDEBUG -c -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Inc -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/system_stm32f4xx.d" -MT"Src/system_stm32f4xx.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/system_stm32f4xx.o"
+arm-none-eabi-gcc "../Src/tim.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DSTM32F405xx -DUSE_HAL_DRIVER -DDEBUG -c -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Inc -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/tim.d" -MT"Src/tim.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/tim.o"
+arm-none-eabi-gcc "../Src/usart.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DSTM32F405xx -DUSE_HAL_DRIVER -DDEBUG -c -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Inc -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/usart.d" -MT"Src/usart.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/usart.o"
+arm-none-eabi-g++ "../Middlewares/Tool/DR16_Backage.cpp" -mcpu=cortex-m4 -std=gnu++14 -g3 -DSTM32F405xx -DUSE_HAL_DRIVER -DDEBUG -c -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Inc -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -fno-exceptions -fno-rtti -fno-threadsafe-statics -fno-use-cxa-atexit -Wall -fstack-usage -MMD -MP -MF"Middlewares/Tool/DR16_Backage.d" -MT"Middlewares/Tool/DR16_Backage.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Middlewares/Tool/DR16_Backage.o"
+In file included from ../Middlewares/Tool/DR16_Backage.cpp:27:0:
+../Middlewares/Tool/DR16_Backage.h:38:1: error: '__packed' does not name a type
+ __packed struct DR16_DataPack_Typedef
+ ^~~~~~~~
+../Middlewares/Tool/DR16_Backage.h:89:9: error: 'DR16_DataPack_Typedef' does not name a type; did you mean 'SW_Status_Typedef'?
+         DR16_DataPack_Typedef DataPack; //数据�?
+         ^~~~~~~~~~~~~~~~~~~~~
+         SW_Status_Typedef
+../Middlewares/Tool/DR16_Backage.h:98:26: error: 'DR16_DataPack_Typedef' has not been declared
+         void DataCapture(DR16_DataPack_Typedef* captureData);  //抓取并更新数据包
+                          ^~~~~~~~~~~~~~~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp: In constructor 'DR16_Classdef::DR16_Classdef()':
+../Middlewares/Tool/DR16_Backage.cpp:40:5: error: 'DataPack' was not declared in this scope
+     DataPack.ch0 = 1024;
+     ^~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp: At global scope:
+../Middlewares/Tool/DR16_Backage.cpp:51:33: error: variable or field 'DataCapture' declared void
+ void DR16_Classdef::DataCapture(DR16_DataPack_Typedef* captureData)
+                                 ^~~~~~~~~~~~~~~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp:51:33: error: 'DR16_DataPack_Typedef' was not declared in this scope
+../Middlewares/Tool/DR16_Backage.cpp:51:33: note: suggested alternative: 'SW_Status_Typedef'
+ void DR16_Classdef::DataCapture(DR16_DataPack_Typedef* captureData)
+                                 ^~~~~~~~~~~~~~~~~~~~~
+                                 SW_Status_Typedef
+../Middlewares/Tool/DR16_Backage.cpp:51:56: error: 'captureData' was not declared in this scope
+ void DR16_Classdef::DataCapture(DR16_DataPack_Typedef* captureData)
+                                                        ^~~~~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp: In member function 'void DR16_Classdef::Key_Process()':
+../Middlewares/Tool/DR16_Backage.cpp:91:12: error: 'DataPack' was not declared in this scope
+         if(DataPack.key & (0x01<<i))
+            ^~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp:100:8: error: 'DataPack' was not declared in this scope
+     if(DataPack.press_l == 0x01)
+        ^~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp:107:8: error: 'DataPack' was not declared in this scope
+     if(DataPack.press_r == 0x01)
+        ^~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp: In member function 'uint64_t DR16_Classdef::GetCh0()':
+../Middlewares/Tool/DR16_Backage.cpp:124:12: error: 'DataPack' was not declared in this scope
+     return DataPack.ch0;
+            ^~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp: In member function 'uint64_t DR16_Classdef::GetCh1()':
+../Middlewares/Tool/DR16_Backage.cpp:129:12: error: 'DataPack' was not declared in this scope
+     return DataPack.ch1;
+            ^~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp: In member function 'uint64_t DR16_Classdef::GetCh2()':
+../Middlewares/Tool/DR16_Backage.cpp:135:12: error: 'DataPack' was not declared in this scope
+     return DataPack.ch2;
+            ^~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp: In member function 'uint64_t DR16_Classdef::GetCh3()':
+../Middlewares/Tool/DR16_Backage.cpp:141:12: error: 'DataPack' was not declared in this scope
+     return DataPack.ch3;
+            ^~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp: In member function 'SW_Status_Typedef DR16_Classdef::GetS2()':
+../Middlewares/Tool/DR16_Backage.cpp:146:31: error: 'DataPack' was not declared in this scope
+     return (SW_Status_Typedef)DataPack.s2;
+                               ^~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp: In member function 'SW_Status_Typedef DR16_Classdef::GetS1()':
+../Middlewares/Tool/DR16_Backage.cpp:150:31: error: 'DataPack' was not declared in this scope
+     return (SW_Status_Typedef)DataPack.s1;
+                               ^~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp: In member function 'int64_t DR16_Classdef::GetMouseX()':
+../Middlewares/Tool/DR16_Backage.cpp:154:12: error: 'DataPack' was not declared in this scope
+     return DataPack.x;
+            ^~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp: In member function 'int64_t DR16_Classdef::GetMouseY()':
+../Middlewares/Tool/DR16_Backage.cpp:158:12: error: 'DataPack' was not declared in this scope
+     return DataPack.y;
+            ^~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp: In member function 'int64_t DR16_Classdef::GetMouseZ()':
+../Middlewares/Tool/DR16_Backage.cpp:162:12: error: 'DataPack' was not declared in this scope
+     return DataPack.z;
+            ^~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp: In member function 'uint64_t DR16_Classdef::GetPress_L()':
+../Middlewares/Tool/DR16_Backage.cpp:166:12: error: 'DataPack' was not declared in this scope
+     return DataPack.press_l;
+            ^~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp: In member function 'uint64_t DR16_Classdef::GetPress_R()':
+../Middlewares/Tool/DR16_Backage.cpp:170:12: error: 'DataPack' was not declared in this scope
+     return DataPack.press_r;
+            ^~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp: In member function 'uint64_t DR16_Classdef::Getkey()':
+../Middlewares/Tool/DR16_Backage.cpp:174:12: error: 'DataPack' was not declared in this scope
+     return DataPack.key;
+            ^~~~~~~~
+../Middlewares/Tool/DR16_Backage.cpp: In member function 'void DR16_Classdef::Check_Link(uint32_t)':
+../Middlewares/Tool/DR16_Backage.cpp:279:55: error: '__nop' was not declared in this scope
+       if(current_check_time - last_check_time > 1000) __nop();
+                                                       ^~~~~
+../Middlewares/Tool/DR16_Backage.cpp:284:10: error: '__nop' was not declared in this scope
+     else __nop();
+          ^~~~~
+make: *** [Middlewares/Tool/subdir.mk:31: Middlewares/Tool/DR16_Backage.o] Error 1
+make: *** Waiting for unfinished jobs....
+"make -j4 all" terminated with exit code 2. Build might be incomplete.

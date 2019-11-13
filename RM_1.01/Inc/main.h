@@ -37,7 +37,7 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-int16_t vx,vy;
+int16_t vx,vy,wx;
 float w;
 uint8_t Txdata1[8],Rxdata1[8],Txdata2[8],Rxdata2[8];
 

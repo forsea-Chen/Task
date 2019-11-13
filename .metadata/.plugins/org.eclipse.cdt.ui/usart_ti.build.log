@@ -1,0 +1,16 @@
+17:20:02 **** Incremental Build of configuration Debug for project usart_ti ****
+make -j4 all 
+arm-none-eabi-gcc "../Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DSTM32F405xx -DUSE_HAL_DRIVER -DDEBUG -c -I../Inc -I../Drivers/CMSIS/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/main.d" -MT"Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/main.o"
+../Src/main.c:36:10: error: expected '=', ',', ';', 'asm' or '__attribute__' before '<' token
+ template <class T>
+          ^
+../Src/main.c: In function 'run':
+../Src/main.c:95:2: warning: implicit declaration of function 'GPIO_Write'; did you mean 'GPIO_PIN_3'? [-Wimplicit-function-declaration]
+  GPIO_Write(GPIOB,0XAA);
+  ^~~~~~~~~~
+  GPIO_PIN_3
+make: *** [Src/subdir.mk:36: Src/main.o] Error 1
+"make -j4 all" terminated with exit code 2. Build might be incomplete.
+
+17:20:07 Build Failed. 2 errors, 1 warnings. (took 4s.940ms)
+

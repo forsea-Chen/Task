@@ -1,0 +1,10 @@
+17:19:24 **** Incremental Build of configuration Debug for project c_cpptest_8 ****
+make -j4 all 
+arm-none-eabi-size   c_cpptest_8.elf 
+   text	   data	    bss	    dec	    hex	filename
+  12384	     16	   1824	  14224	   3790	c_cpptest_8.elf
+Finished building: default.size.stdout
+ 
+
+17:19:26 Build Finished. 0 errors, 0 warnings. (took 2s.205ms)
+

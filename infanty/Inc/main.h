@@ -32,7 +32,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-//#include "Motor.h"
+#include "GCS_Debug.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -49,11 +49,12 @@ typedef struct
   int16_t angle;
   int16_t s;
 }__attribute__ ((packed)) CAN2_RX;
+extern float kp,ki,kd;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-
+void USER_UART_IDLECallback(UART_HandleTypeDef *huart);
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/

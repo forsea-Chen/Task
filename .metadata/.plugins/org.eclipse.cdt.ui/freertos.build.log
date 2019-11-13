@@ -1,0 +1,12 @@
+17:19:43 **** Build of configuration Debug for project freertos ****
+make -j4 all 
+arm-none-eabi-gcc -o "freertos.elf" @"objects.list"   -mcpu=cortex-m4 -T"F:\cube\freertos\STM32F405RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="freertos.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Src/main.o: In function `StartDefaultTask':
+F:/cube/freertos/Debug/../Src/main.c:293: undefined reference to `xQueueSend'
+F:/cube/freertos/Debug/../Src/main.c:294: undefined reference to `osDelayUnit'
+collect2.exe: error: ld returned 1 exit status
+make: *** [makefile:45: freertos.elf] Error 1
+"make -j4 all" terminated with exit code 2. Build might be incomplete.
+
+17:19:51 Build Failed. 3 errors, 0 warnings. (took 7s.836ms)
+

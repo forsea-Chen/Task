@@ -1,0 +1,11 @@
+eclipse.preferences.version=1
+formatter_profile=org.eclipse.cdt.ui.default.whitesmites_profile
+formatter_settings_version=1
+scalability.contentAssistAutoActivation=true
+scalability.numberOfLines=6000
+scalability.parserBasedContentAssist=true
+scalability.reconciler=false
+scalability.semanticHighlight=true
+spelling_locale_initialized=true
+useAnnotationsPrefPage=true
+useQuickDiffPrefPage=true

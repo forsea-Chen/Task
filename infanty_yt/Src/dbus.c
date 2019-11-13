@@ -50,11 +50,14 @@ void data_solve()
 
 	s1=g_rc_device.rc_info.sw1;
 	s2=g_rc_device.rc_info.sw2;
-
-	wx=g_rc_device.rc_info.ch1/10;
-	wy=((g_rc_device.rc_info.ch2)/660)*90;
-	if(wy>=30) wy=30;
-	if(wy<=-30) wy=-30;
+	if((g_rc_device.rc_info.ch1<=10)&&(g_rc_device.rc_info.ch1>=-10))
+	    wx=0;
+	else
+	wx=(g_rc_device.rc_info.ch1)/1320.0;
+	if((g_rc_device.rc_info.ch2<=10)&&(g_rc_device.rc_info.ch2>=-10))
+	    wy=0;
+	else
+	wy=(g_rc_device.rc_info.ch2)/1320.0;
 
 	isonline=g_rc_device.isOnline;
 
@@ -65,12 +68,11 @@ void ctrl_data()
 	if(s1==1)
 	    {
 		WX=2000;
-		vx=y*(-sin(angle))+x*cos(angle);
-		vy=y*cos(angle)+x*sin(angle);
-
 	    }
 	else
 	    {
 	    WX=angle*5;
 	    }
+	VX=y*(-sin(angle))+x*cos(angle);
+	VY=y*cos(angle)+x*sin(angle);
     }
