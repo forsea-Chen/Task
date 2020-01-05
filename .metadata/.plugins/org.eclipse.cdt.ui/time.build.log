@@ -1,10 +1,13 @@
-18:44:44 **** Incremental Build of configuration Debug for project time ****
+12:18:57 **** Incremental Build of configuration Debug for project time ****
 make -j4 all 
 arm-none-eabi-size   time.elf 
+arm-none-eabi-objcopy  -O ihex  time.elf  "time.hex"
    text	   data	    bss	    dec	    hex	filename
   13644	     24	   1792	  15460	   3c64	time.elf
 Finished building: default.size.stdout
  
+Finished building: time.hex
+ 
 
-18:44:45 Build Finished. 0 errors, 0 warnings. (took 1s.556ms)
+12:19:01 Build Finished. 0 errors, 0 warnings. (took 3s.838ms)
 
